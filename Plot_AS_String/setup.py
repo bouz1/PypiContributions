@@ -5,15 +5,15 @@ with open("app/README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="plotstring",
-    version="0.0.15",
+    version="0.0.16",
     description="Create a plot of the data in the clipboard AS STRING. The plot can be used as a normal string in comments, bloc-notes, ... ",
     package_dir={"": "app"},
     packages=find_packages(where="app"),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/bouz1/Plot_AS_String",
-    author="Abdelaziz BOUZIANI",
-    author_email="bouziani.abdelaziz@gmail.com",
+    url="https://github.com/bouz1/PypiContributions/tree/main/Plot_AS_String",
+    author="Abb BOZZ",
+    author_email="bozzabb1@gmail.com",
     license="MIT",
     classifiers=[
         "License :: OSI Approved :: MIT License",

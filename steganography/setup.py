@@ -5,15 +5,15 @@ with open("app/README.md", "r") as f:
 
 setup(
     name="steganograph",
-    version="0.0.12",
+    version="0.0.14",
     description="Head a file in img and extracted without chnaging the image size and you can protect your file with a password",
     package_dir={"": "app"},
     packages=find_packages(where="app"),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/bouz1/steganography.git",
-    author="Abdelaziz BOUZIANI",
-    author_email="bouziani.abdelaziz@gmail.com",
+    url="https://github.com/bouz1/PypiContributions/tree/main/steganography",
+    author="Abb BOZZ",
+    author_email="bozzabb1@gmail.com",
     license="MIT",
     classifiers=[
         "License :: OSI Approved :: MIT License",

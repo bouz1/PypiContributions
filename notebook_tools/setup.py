@@ -5,15 +5,15 @@ with open("app/README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="nbktools",
-    version="0.0.12",
+    version="0.0.13",
     description="TBC ",
     package_dir={"": "app"},
     packages=find_packages(where="app"),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/bouz1/notebook_tools",
-    author="Ab BO",
-    author_email="bouziani.abdelaziz@gmail.com",
+    url="https://github.com/bouz1/PypiContributions/tree/main/notebook_tools",
+    author="Abb BOZZ",
+    author_email="bozzabb1@gmail.com",
     license="MIT",
     classifiers=[
         "License :: OSI Approved :: MIT License",

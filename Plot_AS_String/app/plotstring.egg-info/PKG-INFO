@@ -1,10 +1,10 @@
 Metadata-Version: 2.1
 Name: plotstring
-Version: 0.0.15
+Version: 0.0.16
 Summary: Create a plot of the data in the clipboard AS STRING. The plot can be used as a normal string in comments, bloc-notes, ... 
-Home-page: https://github.com/bouz1/Plot_AS_String
-Author: Abdelaziz BOUZIANI
-Author-email: bouziani.abdelaziz@gmail.com
+Home-page: https://github.com/bouz1/PypiContributions/tree/main/Plot_AS_String
+Author: Abb BOZZ
+Author-email: bozzabb1@gmail.com
 License: MIT
 Platform: UNKNOWN
 Classifier: License :: OSI Approved :: MIT License

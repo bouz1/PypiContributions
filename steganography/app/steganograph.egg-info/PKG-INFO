@@ -1,10 +1,10 @@
 Metadata-Version: 2.1
 Name: steganograph
-Version: 0.0.12
+Version: 0.0.14
 Summary: Head a file in img and extracted without chnaging the image size and you can protect your file with a password
-Home-page: https://github.com/bouz1/steganography.git
-Author: Abdelaziz BOUZIANI
-Author-email: bouziani.abdelaziz@gmail.com
+Home-page: https://github.com/bouz1/PypiContributions/tree/main/steganography
+Author: Abb BOZZ
+Author-email: bozzabb1@gmail.com
 License: MIT
 Platform: UNKNOWN
 Classifier: License :: OSI Approved :: MIT License
@@ -32,7 +32,7 @@ The size of the image before and after data embedding is almost the same. and th
 
 You can install the package by the pip command below
 
-pip install steganograph==0.0.10
+pip install steganograph==0.0.12
 
 # How to use the package
 

@@ -1,10 +1,10 @@
 Metadata-Version: 2.1
 Name: nbktools
-Version: 0.0.12
+Version: 0.0.13
 Summary: TBC 
-Home-page: https://github.com/bouz1/notebook_tools
-Author: Ab BO
-Author-email: bouziani.abdelaziz@gmail.com
+Home-page: https://github.com/bouz1/PypiContributions/tree/main/notebook_tools
+Author: Abb BOZZ
+Author-email: bozzabb1@gmail.com
 License: MIT
 Platform: UNKNOWN
 Classifier: License :: OSI Approved :: MIT License
