@@ -1,0 +1,740 @@
+Metadata-Version: 2.1
+Name: plotstring
+Version: 0.0.15
+Summary: Create a plot of the data in the clipboard AS STRING. The plot can be used as a normal string in comments, bloc-notes, ... 
+Home-page: https://github.com/bouz1/Plot_AS_String
+Author: Abdelaziz BOUZIANI
+Author-email: bouziani.abdelaziz@gmail.com
+License: MIT
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.1
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+License-File: LICENSE
+
+# Introduction 
+
+This sample package contain just one function "plot", this function can **plot** a numerical data x,y as a string <br>
+The string plot can be helpful to be used in comments, on in bloc-notes, ... <br> 
+The plot is a normal string that can be used anywhere <br> 
+see the below example: Price of the BTC plot as string
+
+
+```python
+# You can put the code her
+
+# Below the plot as a comments
+
+'''
+Price of the BTC: January 2023, High, finance.yahoo
+                                                High price (USD)
+----------------------------------------------**-|2.51e+04
+|                                             ***|
+|                               *            ****|
+|                       *   ** ***           ****|
+|                   *   *** ******** **      ****|
+|                   ********************     ****|2.30e+04
+|                  *********************     ****|
+|                  *********************  * *****|
+|                * ******************************|
+|              **********************************|
+|            ************************************|2.09e+04
+|            ************************************|
+|           *************************************|
+|           *************************************|
+|          **************************************|
+|          **************************************|1.88e+04
+|          **************************************|
+|         ***************************************|
+|       *****************************************|
+|  **********************************************|
+*************************************************|1.66e+04
+¦1.00e+00   ¦1.30e+01   ¦2.50e+01   ¦3.70e+01   ¦4.90e+01
+Day of January 2023
+'''
+# Example of code line
+a=None
+```
+
+# Installation
+
+### PyPi installation
+!pip install plotstring 
+### Installation form github
+
+Download the zip from https://github.com/bouz1/Plot_AS_String and unzip the file <br>
+Or clone the reposotory in local by the cmd: git clone https://github.com/bouz1/Plot_AS_String.git<br>
+Run cmd in the folder that contain the setup.py<br>
+Excute the cmd: pip install .
+
+# Libraries
+
+
+```python
+# The main library : plotstring 
+from plotstring import plot
+# Other libraries to test plotstring 
+import numpy as np
+import pandas as pd
+import pyperclip
+```
+
+# Using of the function "plot"
+
+### Help
+
+you can use Help to see the function description
+
+
+```python
+help(plot)
+```
+
+    Help on function plot in module plotstring:
+    
+    plot(df=None, Nx=80, Ny=32, title='Title', xlabel=None, ylabel=None, print_str=True, return_str=True, copy_out_clipbrd=True, markers='*', N_grid=2, bar=False, x_int=False)
+        Create a plot of the data in the clipboard AS STRING.
+        The plot can be used as a normal string in comments, bloc-notes, ... 
+        
+        :param df: DataFrame, optional
+            The DataFrame to plot. If not provided, the function reads from the clipboard.
+        :param Nx: int, optional
+            The number of horizontal pixels in the plot.
+        :param Ny: int, optional
+            The number of vertical pixels in the plot.
+        :param title: str, optional
+            The title of the plot.
+        :param xlabel: str, optional
+            The label for the x-axis. if not provided, the function will use df columns.
+        :param ylabel: str, optional
+            The label for the y-axis. if not provided, the function will use df columns.
+        :param print_str: bool, optional
+            Whether to print the plot as a string.
+        :param return_str: bool, optional
+            Whether to return the plot as a string.
+        :param copy_out_clipbrd: bool, optional
+            Whether to copy the plot to the clipboard.
+        :param markers: str, optional
+            The marker to use for the plot.
+        :param N_grid: int, optional
+            The number of grid lines to use.
+        :param bar: bool, optional
+            Whether to use a bar plot instead of a line plot.
+        :param x_int: bool, optional
+            Whether the x is an integer or not.
+        :return: None or str
+            If `print_str` is True, the plot is printed as a string. If `return_str` is True, the plot is returned as a string. Otherwise, None is returned.
+    
+    
+
+### Use plot by passing a DataFrame
+
+In this first example, the plot function use a dataFrame as input 
+
+Prepare data to test the plot function
+
+
+```python
+x=np.arange(0,360,10)
+y=np.sin(x*np.pi/180)
+```
+
+
+```python
+df=pd.DataFrame(zip(x,y),columns=['angle','sin_angle'])
+df.head()
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>angle</th>
+      <th>sin_angle</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>10</td>
+      <td>0.173648</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>20</td>
+      <td>0.342020</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>30</td>
+      <td>0.500000</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>40</td>
+      <td>0.642788</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+Use our funciton plot with a dataFrame as input
+
+
+```python
+output_string=plot(df)
+```
+
+                                         Title                                     
+                                                                                    sin_angle
+    ------------------*--*-*---------------------------------------------------------|1.00e+00
+    |               *        *              |                                        |
+    |             *            *            |                                        |
+    |                                       |                                        |
+    |          *                  *         |                                        |
+    |                                       |                                        |
+    |        *                      *       |                                        |
+    |                                       |                                        |
+    |      *                          *     |                                        |5.00e-01
+    |                                       |                                        |
+    |                                       |                                        |
+    |    *                               *  |                                        |
+    |                                       |                                        |
+    | *                                    *|                                        |
+    |                                       |                                        |
+    |                                       |                                        |
+    *----------------------------------------*---------------------------------------|0.00e+00
+    |                                       |                                        |
+    |                                       |                                        |
+    |                                       |  *                                    *|
+    |                                       |                                        |
+    |                                       |     *                               *  |
+    |                                       |                                        |
+    |                                       |                                        |
+    |                                       |       *                          *     |-5.00e-01
+    |                                       |                                        |
+    |                                       |         *                      *       |
+    |                                       |                                        |
+    |                                       |            *                 *         |
+    |                                       |                                        |
+    |                                       |              *             *           |
+    |                                       |                *        *              |
+    -----------------------------------------------------------*--*-*----------------|-1.00e+00
+    ¦0.00e+00           ¦8.75e+01           ¦1.75e+02           ¦2.62e+02           ¦3.50e+02
+    angle
+    
+
+### use plot by CTRL + C
+
+In this second example, the plot function can use directly the data in your clipboard,
+<br> you can for example copy the data directly from an excel file, and run the plot function to plot your data
+
+Example of the data that you can copy in your clipboard using simply the habitual keys CTRL+C
+
+
+```python
+string = '''angle	sin_angle
+-90	6.12E-17
+-80	1.74E-01
+-70	3.42E-01
+-60	5.00E-01
+-50	6.43E-01
+-40	7.66E-01
+-30	8.66E-01
+-20	9.40E-01
+-10	9.85E-01
+0	1.00E+00
+10	9.85E-01
+20	9.40E-01
+30	8.66E-01
+40	7.66E-01
+50	6.43E-01
+60	5.00E-01
+70	3.42E-01
+80	1.74E-01
+90	6.12E-17'''
+```
+
+You can copy the above data, but for this example we will use pyperclip.copy to copy the string by code (this can be helpful if we run the entire notebook)
+
+
+```python
+pyperclip.copy(string)
+# Plot the copied data
+output_string=plot()
+```
+
+                                         Title                                     
+                                                                                    sin_angle
+    ------------------------------------*---*---*------------------------------------|1.00e+00
+    |                                       |                                        |
+    |                              *        |        *                               |
+    |                                       |                                        |
+    |                          *            |            *                           |
+    |                                       |                                        |
+    |                                       |                                        |
+    |                     *                 |                 *                      |
+    |                                       |                                        |7.50e-01
+    |                                       |                                        |
+    |                                       |                                        |
+    |                 *                     |                     *                  |
+    |                                       |                                        |
+    |                                       |                                        |
+    |                                       |                                        |
+    |                                       |                                        |
+    -------------*-----------------------------------------------------*-------------|5.00e-01
+    |                                       |                                        |
+    |                                       |                                        |
+    |                                       |                                        |
+    |                                       |                                        |
+    |        *                              |                              *         |
+    |                                       |                                        |
+    |                                       |                                        |
+    |                                       |                                        |2.50e-01
+    |                                       |                                        |
+    |   *                                   |                                   *    |
+    |                                       |                                        |
+    |                                       |                                        |
+    |                                       |                                        |
+    |                                       |                                        |
+    |                                       |                                        |
+    *-------------------------------------------------------------------------------*|6.12e-17
+    ¦-9.00e+01          ¦-4.50e+01          ¦0.00e+00           ¦4.50e+01          ¦9.00e+01
+    angle
+    
+
+### Other parameters of the plot function
+
+Prepare data for this third example
+
+
+```python
+x=np.arange(-3,3.2,0.2)
+y=np.exp(-(x**2))
+df=pd.DataFrame(zip(x,y),columns=['angle','Norm PDF'])
+```
+
+The plot data with all parameters
+
+**Without returning the string, and without copying the string in the clipboard**
+
+
+```python
+plot(df,                     #The DataFrame to plot. If not provided, the function reads from the clipboard.
+    Nx=80,                   # The number of horizontal pixels in the plot.
+    Ny=20,                   # The number of vertical pixels in the plot.
+    title='PDF' ,         # The title of the plot.
+    xlabel='X axis',         # The label for the x-axis. if not provided, the function will use df columns.
+    ylabel='y axis',         # The label for the y-axis. if not provided, the function will use df columns.
+    print_str=True,          # Whether to print the plot as a string.
+    return_str=False,        # Whether to return the plot as a string.
+    copy_out_clipbrd=False,  # Whether to copy the plot to the clipboard. 
+    markers='*',             # The marker to use for the plot.
+    N_grid=1,                # The number of grid lines to use.
+    bar=True,                # Whether to use a bar plot instead of a line plot.
+    x_int=False              # Whether the x is an integer or not
+    )
+```
+
+                                          PDF                                      
+                                                                                    y axis
+    ----------------------------------------*----------------------------------------|1.00e+00
+    |                                    *  *  *                                     |
+    |                                    *  *  *                                     |
+    |                                  * *  *  * *                                   |
+    |                                  * *  *  * *                                   |
+    |                                  * *  *  * *                                   |7.50e-01
+    |                               *  * *  *  * *  *                                |
+    |                               *  * *  *  * *  *                                |
+    |                               *  * *  *  * *  *                                |
+    |                            *  *  * *  *  * *  *  *                             |
+    |                            *  *  * *  *  * *  *  *                             |5.00e-01
+    |                            *  *  * *  *  * *  *  *                             |
+    |                            *  *  * *  *  * *  *  *                             |
+    |                          * *  *  * *  *  * *  *  * *                           |
+    |                          * *  *  * *  *  * *  *  * *                           |
+    |                       *  * *  *  * *  *  * *  *  * *  *                        |2.50e-01
+    |                       *  * *  *  * *  *  * *  *  * *  *                        |
+    |                    *  *  * *  *  * *  *  * *  *  * *  *  *                     |
+    |                  * *  *  * *  *  * *  *  * *  *  * *  *  * *                   |
+    |               *  * *  *  * *  *  * *  *  * *  *  * *  *  * *  *                |
+    *--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*|1.23e-04
+    ¦-3.00e+00          ¦-1.50e+00          ¦0.00e+00           ¦1.50e+00          ¦3.00e+00
+    X axis
+    
+
+**Without printing the string, and without copying the string in the clipboard, the function will return the string**
+
+
+```python
+str_out=plot(
+    df,                     #The DataFrame to plot. If not provided, the function reads from the clipboard.
+    Nx=80,                   # The number of horizontal pixels in the plot.
+    Ny=20,                   # The number of vertical pixels in the plot.
+    title='PDF' ,         # The title of the plot.
+    xlabel='X axis',         # The label for the x-axis. if not provided, the function will use df columns.
+    ylabel='y axis',         # The label for the y-axis. if not provided, the function will use df columns.
+    print_str=False,          # Whether to print the plot as a string.
+    return_str=True,         # Whether to return the plot as a string.
+    copy_out_clipbrd=False,  # Whether to copy the plot to the clipboard. 
+    markers='*',             # The marker to use for the plot.
+    N_grid=1,                # The number of grid lines to use.
+    bar=True,                # Whether to use a bar plot instead of a line plot.
+    x_int=False              # Whether the x is an integer or not
+    )
+```
+
+you can use the retuned string
+
+
+```python
+print(str_out)
+```
+
+                                          PDF                                      
+                                                                                    y axis
+    ----------------------------------------*----------------------------------------|1.00e+00
+    |                                    *  *  *                                     |
+    |                                    *  *  *                                     |
+    |                                  * *  *  * *                                   |
+    |                                  * *  *  * *                                   |
+    |                                  * *  *  * *                                   |7.50e-01
+    |                               *  * *  *  * *  *                                |
+    |                               *  * *  *  * *  *                                |
+    |                               *  * *  *  * *  *                                |
+    |                            *  *  * *  *  * *  *  *                             |
+    |                            *  *  * *  *  * *  *  *                             |5.00e-01
+    |                            *  *  * *  *  * *  *  *                             |
+    |                            *  *  * *  *  * *  *  *                             |
+    |                          * *  *  * *  *  * *  *  * *                           |
+    |                          * *  *  * *  *  * *  *  * *                           |
+    |                       *  * *  *  * *  *  * *  *  * *  *                        |2.50e-01
+    |                       *  * *  *  * *  *  * *  *  * *  *                        |
+    |                    *  *  * *  *  * *  *  * *  *  * *  *  *                     |
+    |                  * *  *  * *  *  * *  *  * *  *  * *  *  * *                   |
+    |               *  * *  *  * *  *  * *  *  * *  *  * *  *  * *  *                |
+    *--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*|1.23e-04
+    ¦-3.00e+00          ¦-1.50e+00          ¦0.00e+00           ¦1.50e+00          ¦3.00e+00
+    X axis
+    
+
+**Without printing the string, and without returning the string in the clipboard, the function will copy the string in your clipboard**
+
+
+```python
+plot(
+    df,                     #The DataFrame to plot. If not provided, the function reads from the clipboard.
+    Nx=80,                   # The number of horizontal pixels in the plot.
+    Ny=20,                   # The number of vertical pixels in the plot.
+    title='PDF' ,         # The title of the plot.
+    xlabel='X axis',         # The label for the x-axis. if not provided, the function will use df columns.
+    ylabel='y axis',         # The label for the y-axis. if not provided, the function will use df columns.
+    print_str=False,          # Whether to print the plot as a string.
+    return_str=False,        # Whether to return the plot as a string.
+    copy_out_clipbrd=True,  # Whether to copy the plot to the clipboard. 
+    #markers='*',             # The marker to use for the plot.
+    N_grid=1,                # The number of grid lines to use.
+    bar=True                 # Whether to use a bar plot instead of a line plot.
+    )
+```
+
+You can past the string anywhere, you can ofcore use the keys CTRL + V to paste the string, example of pasting 
+
+
+```python
+'''
+PDF                                      
+                                                                                y axis
+----------------------------------------*----------------------------------------|1.00e+00
+|                                    *  *  *                                     |
+|                                    *  *  *                                     |
+|                                  * *  *  * *                                   |
+|                                  * *  *  * *                                   |
+|                                  * *  *  * *                                   |7.50e-01
+|                               *  * *  *  * *  *                                |
+|                               *  * *  *  * *  *                                |
+|                               *  * *  *  * *  *                                |
+|                            *  *  * *  *  * *  *  *                             |
+|                            *  *  * *  *  * *  *  *                             |5.00e-01
+|                            *  *  * *  *  * *  *  *                             |
+|                            *  *  * *  *  * *  *  *                             |
+|                          * *  *  * *  *  * *  *  * *                           |
+|                          * *  *  * *  *  * *  *  * *                           |
+|                       *  * *  *  * *  *  * *  *  * *  *                        |2.50e-01
+|                       *  * *  *  * *  *  * *  *  * *  *                        |
+|                    *  *  * *  *  * *  *  * *  *  * *  *  *                     |
+|                  * *  *  * *  *  * *  *  * *  *  * *  *  * *                   |
+|               *  * *  *  * *  *  * *  *  * *  *  * *  *  * *  *                |
+*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*--*-*--*|1.23e-04
+¦-3.00e+00          ¦-1.50e+00          ¦0.00e+00           ¦1.50e+00          ¦3.00e+00
+X axis
+'''
+
+_=0
+```
+
+**You can chnage Nx, Ny**
+
+
+```python
+_=plot(
+    df,                     #The DataFrame to plot. If not provided, the function reads from the clipboard.
+    Nx=20,                 # The number of horizontal pixels in the plot.
+    Ny=10                  # The number of vertical pixels in the plot.
+)
+```
+
+           Title       
+                        Norm PDF
+    ---------***---------|1.00e+00
+    |        *|*         |
+    |         |          |8.00e-01
+    |       * | *        |
+    |         |          |6.00e-01
+    -------*-----*-------|
+    |      *  |  *       |4.00e-01
+    |         |          |
+    |     *   |   *      |2.00e-01
+    |    *    |    *     |
+    *****-----------*****|1.23e-04
+    ¦-3.0¦-1.5¦0.00¦1.50e+00¦3.00e+00
+    angle
+    
+
+**You can change the number of grid lines "N_grid", trick: preferably you can use N_grid  as common divisor of Nx, Ny**
+
+
+```python
+_=plot(
+    df,                     #The DataFrame to plot. If not provided, the function reads from the clipboard.
+    Nx=80,                   # The number of horizontal pixels in the plot.
+    Ny=20,                   # The number of vertical pixels in the plot.
+    N_grid=5,                # The number of grid lines to use.
+    )
+```
+
+                                         Title                                     
+                                                                                    Norm PDF
+    ----------------------------------------*----------------------------------------|1.00e+00
+    |               |               |    *     *    |               |                |
+    |               |               |               |               |                |
+    |               |               |  *         *  |               |                |
+    ---------------------------------------------------------------------------------|
+    |               |               |               |               |                |7.50e-01
+    |               |               *               *               |                |
+    |               |               |               |               |                |
+    ---------------------------------------------------------------------------------|
+    |               |            *  |               |  *            |                |
+    |               |               |               |               |                |5.00e-01
+    |               |               |               |               |                |
+    ---------------------------------------------------------------------------------|
+    |               |          *    |               |    *          |                |
+    |               |               |               |               |                |
+    |               |       *       |               |       *       |                |2.50e-01
+    ---------------------------------------------------------------------------------|
+    |               |    *          |               |          *    |                |
+    |               |  *            |               |            *  |                |
+    |               *               |               |               *                |
+    *--*-*--*--*-*-----------------------------------------------------*-*--*--*-*--*|1.23e-04
+    ¦-3.00e+00          ¦-1.50e+00          ¦0.00e+00           ¦1.50e+00          ¦3.00e+00
+    angle
+    
+
+**X as integer**
+
+
+```python
+_=plot(
+    df,                     #The DataFrame to plot. If not provided, the function reads from the clipboard.
+    Nx=80,                   # The number of horizontal pixels in the plot.
+    Ny=20,                   # The number of vertical pixels in the plot.
+    N_grid=5,                # The number of grid lines to use.
+    x_int=True               # Whether the x is an integer or not
+
+    )
+```
+
+                                         Title                                     
+                                                                                    Norm PDF
+    ----------------------------------------*----------------------------------------|1.00e+00
+    |               |               |    *     *    |               |                |
+    |               |               |               |               |                |
+    |               |               |  *         *  |               |                |
+    ---------------------------------------------------------------------------------|
+    |               |               |               |               |                |7.50e-01
+    |               |               *               *               |                |
+    |               |               |               |               |                |
+    ---------------------------------------------------------------------------------|
+    |               |            *  |               |  *            |                |
+    |               |               |               |               |                |5.00e-01
+    |               |               |               |               |                |
+    ---------------------------------------------------------------------------------|
+    |               |          *    |               |    *          |                |
+    |               |               |               |               |                |
+    |               |       *       |               |       *       |                |2.50e-01
+    ---------------------------------------------------------------------------------|
+    |               |    *          |               |          *    |                |
+    |               |  *            |               |            *  |                |
+    |               *               |               |               *                |
+    *--*-*--*--*-*-----------------------------------------------------*-*--*--*-*--*|1.23e-04
+    ¦-3                 ¦-1                 ¦0                  ¦1                 ¦3
+    angle
+    
+
+**Change the markers**
+
+
+```python
+_=plot(
+    df,                     #The DataFrame to plot. If not provided, the function reads from the clipboard.
+    Nx=80,                   # The number of horizontal pixels in the plot.
+    Ny=20,                   # The number of vertical pixels in the plot.
+    N_grid=1,                # The number of grid lines to use.
+    markers='|',             # The marker to use for the plot.
+    bar=True,                # Whether to use a bar plot instead of a line plot.
+    x_int=False              # Whether the x is an integer or not
+    )
+```
+
+                                         Title                                     
+                                                                                    Norm PDF
+    ----------------------------------------|----------------------------------------|1.00e+00
+    |                                    |  |  |                                     |
+    |                                    |  |  |                                     |
+    |                                  | |  |  | |                                   |
+    |                                  | |  |  | |                                   |
+    |                                  | |  |  | |                                   |7.50e-01
+    |                               |  | |  |  | |  |                                |
+    |                               |  | |  |  | |  |                                |
+    |                               |  | |  |  | |  |                                |
+    |                            |  |  | |  |  | |  |  |                             |
+    |                            |  |  | |  |  | |  |  |                             |5.00e-01
+    |                            |  |  | |  |  | |  |  |                             |
+    |                            |  |  | |  |  | |  |  |                             |
+    |                          | |  |  | |  |  | |  |  | |                           |
+    |                          | |  |  | |  |  | |  |  | |                           |
+    |                       |  | |  |  | |  |  | |  |  | |  |                        |2.50e-01
+    |                       |  | |  |  | |  |  | |  |  | |  |                        |
+    |                    |  |  | |  |  | |  |  | |  |  | |  |  |                     |
+    |                  | |  |  | |  |  | |  |  | |  |  | |  |  | |                   |
+    |               |  | |  |  | |  |  | |  |  | |  |  | |  |  | |  |                |
+    |--|-|--|--|-|--|--|-|--|--|-|--|--|-|--|--|-|--|--|-|--|--|-|--|--|-|--|--|-|--||1.23e-04
+    ¦-3.00e+00          ¦-1.50e+00          ¦0.00e+00           ¦1.50e+00          ¦3.00e+00
+    angle
+    
+
+**BTC price**
+
+
+```python
+s='''Day	High
+1	16630.43945
+2	16759.34375
+3	16760.44727
+4	16964.58594
+5	16884.02148
+6	16991.99414
+7	16975.01758
+8	17091.14453
+9	17389.95703
+10	17484.7207
+11	17934.89648
+12	19030.08789
+13	19964.32227
+14	21075.14258
+15	20993.74805
+16	21360.875
+17	21438.66016
+18	21564.50195
+19	21163.01172
+20	22692.35742
+21	23282.34766
+22	23056.73047
+23	23126.48633
+24	23134.01172
+25	23722.09961
+26	23237.07813
+27	23417.7207
+28	23165.89648
+29	23919.89063
+30	23789.34766
+31	23225.02148
+32	23764.53906
+33	24167.21094
+34	23678.10352
+35	23556.94922
+36	23423.43555
+37	23119.2793
+38	23310.97461
+39	23367.95898
+40	22996.4375
+41	21941.18555
+42	21891.41016
+43	22060.99414
+44	21898.41406
+45	22293.14063
+46	24307.8418
+47	25134.11719
+48	24924.04102
+49	24798.83594'''
+pyperclip.copy(s)
+_=plot(bar=True,Nx=48,Ny=20,N_grid=1,
+       title='Price of the BTC: January 2023, High, finance.yahoo',
+      xlabel='Day of January 2023',ylabel='High price (USD)',x_int=True)
+```
+
+    Price of the BTC: January 2023, High, finance.yahoo
+                                                    High price (USD)
+    ----------------------------------------------**-|2.51e+04
+    |                                             ***|
+    |                               *            ****|
+    |                       *   ** ***           ****|
+    |                   *   *** ******** **      ****|
+    |                   ********************     ****|2.30e+04
+    |                  *********************     ****|
+    |                  *********************  * *****|
+    |                * ******************************|
+    |              **********************************|
+    |            ************************************|2.09e+04
+    |            ************************************|
+    |           *************************************|
+    |           *************************************|
+    |          **************************************|
+    |          **************************************|1.88e+04
+    |          **************************************|
+    |         ***************************************|
+    |       *****************************************|
+    |  **********************************************|
+    *************************************************|1.66e+04
+    ¦1          ¦13         ¦25         ¦37         ¦49
+    Day of January 2023
+    
+
+

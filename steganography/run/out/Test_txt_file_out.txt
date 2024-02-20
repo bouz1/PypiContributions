@@ -1,0 +1,8 @@
+Below an example of text file that we can head in the image file
+
+Bitcoin Address
+13daa8SYB8L5b8hcrkBfABskDzju53A3PR
+Private Key
+L58FrKEB6p9EMdBWsG5njdLVRnafUJHff3Xz3uy2VMo2GLJU4PAG
+
+My PW: JQSqju*/66587sa

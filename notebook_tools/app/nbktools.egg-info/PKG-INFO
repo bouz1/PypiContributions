@@ -1,0 +1,19 @@
+Metadata-Version: 2.1
+Name: nbktools
+Version: 0.0.12
+Summary: TBC 
+Home-page: https://github.com/bouz1/notebook_tools
+Author: Ab BO
+Author-email: bouziani.abdelaziz@gmail.com
+License: MIT
+Platform: UNKNOWN
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.1
+Description-Content-Type: text/markdown
+Provides-Extra: dev
+License-File: LICENSE
+
+UNKNOWN
+

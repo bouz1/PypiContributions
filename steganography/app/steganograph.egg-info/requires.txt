@@ -1,0 +1,7 @@
+
+[dev]
+hashlib
+imageio
+numpy
+os
+re

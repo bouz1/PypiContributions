@@ -1,0 +1,13 @@
+LICENSE
+README.md
+setup.py
+app/plotstring/__init__.py
+app/plotstring.egg-info/PKG-INFO
+app/plotstring.egg-info/SOURCES.txt
+app/plotstring.egg-info/dependency_links.txt
+app/plotstring.egg-info/requires.txt
+app/plotstring.egg-info/top_level.txt
+app/plotstring/src/__init__.py
+app/plotstring/src/plotstring.py
+app/plotstring/test/__init__.py
+app/plotstring/test/test_plotstring.py
