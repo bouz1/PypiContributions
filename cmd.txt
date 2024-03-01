@@ -1,0 +1,37 @@
+luch cmd 
+tapes the below commandes
+py  ==> to passe to the python with >>
+print ('hello')
+exit() => to exit python mode 
+=========================
+:: Creat distributions (source and wheel)
+python setup.py bdist_wheel sdist
+:: istall the package locally if you wante
+pip install . 
+:: in python you can run 
+:: from my_pip_package import *
+:: you can run this cmd to check if all is ok in the distibution file 
+:: you can install twine by: pip install twine
+::twine check dist/*  ===> didn't work 
+python -m twine check dist/* ==> it's ok 
+________________Old_____________________________
+:: upload the package, the URL in the setup must be valide (I use a github url)
+python -m twine upload dist/* :: Or use the below to remove old version
+python -m twine upload --skip-existing dist/* :: 
+____________________________________
+::Using the token to upload
+python -m twine upload -u __token__ -p My_token_see_PW_file dist/* 
+:: enter you UN and pw 
+pip install steganograph
+:: you can use the package
+
+
+
+
+
+https://www.youtube.com/watch?v=5KEObONUkik
+
+
+
+Alternative
+***********

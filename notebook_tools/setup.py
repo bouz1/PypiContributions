@@ -5,7 +5,7 @@ with open("app/README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="nbktools",
-    version="0.0.13",
+    version="0.0.18",
     description="TBC ",
     package_dir={"": "app"},
     packages=find_packages(where="app"),
