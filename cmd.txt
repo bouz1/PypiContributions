@@ -25,6 +25,9 @@ python -m twine upload -u __token__ -p My_token_see_PW_file dist/*
 pip install steganograph
 :: you can use the package
 
+:: Cmd with token : python -m twine upload -u __token__ -p My_token_see_PW_file dist/* 
+U2FsdGVkX1996U6P/R+P4To6kGRlvAJtIm6C/okyadPZyEUy2+tSXWHX4poDm55uuXVAqjSahj4qcQ4CDAlXUJqzxEAwiupacGHGfZEbuyBmBkSm2zMKSyGoQMeKPjhYxviqNUgb86oTYvJh4JXnUVsD6d/Yo656+BRz2cOxqWZhb5qo+NMnWi+L9sannWBEAluKoUqpr4u3hxMGQSB1ARZyl6q+XfWlV3BKomvnrjnopE1BjMYiYkXg8cAnoqJSSzkQwirqxxp8qtCCYXj161HVH4NwV8nLalgNuwniqBTj2RY6Dz+DVTgSPY4nOh0XkYRMQKjVZFHhQw8mFODPXw==
+
 
 
 
