@@ -7,7 +7,7 @@ from datetime import datetime
 name_of_package = "mltoarduino"
 filePackage = "../ML-Model-To-Arduino-Cpp/package/mltoarduino.py"
 ReadMeFile ="../ML-Model-To-Arduino-Cpp/package/README.md"
-version = "0.0.4"
+version = "0.0.5"
 
 ######################### STRUCTURE ####################################
 paths = [

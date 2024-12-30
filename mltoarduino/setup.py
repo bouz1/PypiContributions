@@ -6,7 +6,7 @@ with open("app/README.md", "r", encoding="utf-8") as f:
 
 setup(
     name='mltoarduino',
-    version='0.0.4',
+    version='0.0.5',
     description="See readMe.ma",
     package_dir={"": "app"},
     packages=find_packages(where="app"),
