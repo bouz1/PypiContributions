@@ -1,0 +1,15 @@
+### Step 1
+Open a command prompt in the project root directory:
+C:.
+└───app
+    ├───emi_receiver
+    │   ├───src
+    │   │   └───__pycache__
+    │   ├───test
+    │   │   └───__pycache__
+    │   └───__pycache__
+    └───__pycache__
+
+### Step 2
+Run the following command:
+python -m pytest
