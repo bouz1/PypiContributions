@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: emi-receiver
-Version: 0.0.1
+Version: 0.0.3
 Summary: See readMe.ma
 Home-page: https://github.com/bouz1/PypiContributions/tree/main/emi-receiver
 Author: bouz1.github.io
@@ -68,36 +68,85 @@ pip install emi_receiver
 * `numpy`
 * `scipy`
 * `numba`
-* `matplotlib`
 
 ## Quick Start
+
+**Generate signal and apply the emi receiver emulator**
 
 ```python
 import numpy as np
 import matplotlib.pyplot as plt
 from emi_receiver import receiver
 
-# 1. Generate a test signal (e.g., 1 MHz sine wave + Noise)
-fs = 30e6  # 30 MHz sampling rate
-duration = 0.1  # seconds
-t = np.arange(int(fs * duration)) / fs
-signal = 0.01 * np.sin(2 * np.pi * 1e6 * t) + 0.001 * np.random.randn(len(t))
+# 1. Generate a test signal (Square signal of 180kHz + Noise)
+fs = 60e6  # 30 MHz sampling rate
+duration = 0.05  # seconds
+amp=1e-2
+t = np.arange(0,duration,1/fs)
+signal = amp*(np.sin(2 * np.pi * 180e3* t)>0)-amp/2
+signal += 0.001 * np.random.randn(len(t))
 
 # 2. Run the EMI Receiver (Band B: 150kHz - 30MHz)
 freqs, peak, avg, qp = receiver(signal, fs, band='B')
+```
 
+Expected Result:
+
+```text
+--------------------------------------------------
+EMI Receiver Configuration:
+  RBW           : 9000 Hz
+  Step Size     : 2500.00 Hz (Target: 2500 Hz)
+  Window Size   : 14991 samples
+  FFT Size      : 24000 samples (Zero-Padding: True)
+  Detector Time : 0.025 ms
+--------------------------------------------------
+```
+
+**Plot Peak, Qpeak, Avg, and limits**
+
+```python
 # 3. Plot the results
-plt.figure(figsize=(10, 6))
-plt.plot(freqs / 1e6, peak, label='Peak', color='blue', alpha=0.5)
-plt.plot(freqs / 1e6, qp, label='Quasi-Peak', color='red')
-plt.plot(freqs / 1e6, avg, label='Average', color='green', linestyle='--')
-plt.xlabel('Frequency (MHz)')
-plt.ylabel('Amplitude (dBµV)')
-plt.title('EMI Receiver Emulation (CISPR Band B)')
-plt.legend()
+
+plt.figure(figsize=(10,5))
+plt.semilogx(freqs*1e-6, peak, label='Peak', color='#00F047', linewidth=0.7)
+plt.semilogx(freqs*1e-6, qp, label='Qpeak', color='#C62828', linewidth=0.7) 
+plt.semilogx(freqs*1e-6, avg, label='AVG', color='#2D00B8', linewidth=0.7)
+
+
+# Class A: Limits for industrial/commercial environments → less strict (higher allowed emissions).
+# Class B: Limits for residential environments → more strict (lower allowed emissions).
+freqs0 = np.array([150e3, 500e3, 5e6, 5e6,30e6])
+qp_limits = np.array([66, 56, 56, 60, 60])   # dBµV
+avg_limits = np.array([56, 46, 46, 50,50])  # dBµV
+plt.semilogx(freqs0*1e-6, qp_limits ,   label='Q-Peak EN 55022/32 classB', c="r",linestyle="--")
+plt.semilogx(freqs0*1e-6,avg_limits  ,   label='AVG EN 55022/32 classB', c= "b",linestyle="--")
+
+
+# CISPR 22 / EN 55032 - CLASS A (Industrial) - Mains Port
+# Note: Class A has a step at 500 kHz, not 5 MHz.
+freqs0 = np.array([150e3, 500e3, 500e3, 30e6])
+qp_limits = np.array([79.0, 79.0, 73.0, 73.0])   # dBµV
+avg_limits = np.array([66.0, 66.0, 60.0, 60.0])  # dBµV
+plt.semilogx(freqs0*1e-6, qp_limits ,   label='Q-Peak EN 55022/32 classA', c="#FF29C2",linestyle="dotted")
+plt.semilogx(freqs0*1e-6,avg_limits  ,   label='AVG EN 55022/32 classA', c= "#29DBFF",linestyle="dotted")
+
+plt.ylim(20, 85)
+plt.yticks(np.arange(20, 85+1, 5))
 plt.grid(True)
+plt.grid(True, which='both', ls=':')
+plt.xlabel('Freq MHz')
+plt.xlim([0.15, 30])
+plt.ylabel('dBµV')
+plt.legend(ncol=2)
+plt.tight_layout()
+plt.title("RBW 9khz Step 2.5kHz MT 50ms Fs 50Mhz, 150kHz to 30MHz")
+plt.savefig("ExampleOfUse.png")
 plt.show()
 ```
+
+Expected Result:
+<img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/ExampleOfUse3.png">
 
 ## Validation of the EMI Receiver Emulator
 
@@ -171,32 +220,63 @@ For each test, two configurations are evaluated: a fixed frequency of 140 kHz an
 
 A schematic of this setup is shown below:
 
-<.........>
+<img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/setup.png">
 
-The results from the EMI receiver are presented for the following detectors:
+For the Python emulator, we create a **square signal of ±10 mV** with an **attenuation factor of 0.5** (because the function generator has a **50 Ω output resistance** and the **EMI receiver input impedance is 50 Ω**, resulting in a voltage division by two).
+The **measurement time is 50 ms**, with a **sampling time of 1e-8 s**.
+
+For more details on the signal generation, see the <a href="https://github.com/bouz1/PypiContributions/blob/main/emi-receiver/exampleofuse/EMI_Emulation_Vs_Industrial_receiver.ipynb">link</a>.
+
+Below is a zoomed view of the generated signal:
+
+<img src="https://boab235.github.io/pages/pypi/emi_receiver/imgs/signals.png">
+
+The results obtained from the **industrial EMI receiver** and the **Python emulator** are presented below:
 
 * **AVG Detector**
-
-<.........>
+  <u>Industrial receiver</u>
+  
+  <img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/avg.png">
+  <u>Python emulator</u>
+  <img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/avgEm.png">
 
 * **Peak Detector**
-  <.........>
+  <u>Industrial receiver</u>
+  
+  <img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/peak.png">
+  <u>Python emulator</u>
+  <img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/peakEm.png">
 
 * **Quasi-Peak Detector**
-  <.........>
+  <u>Industrial receiver</u>
+  
+  <img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/qpeak.png">
+  <u>Python emulator</u>
+  <img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/qpeakEm.png">
+
+We can see that the emulator result is close enough to the industrial receiver, even with local creation of the signal using simple Python frequency generation. We expect to see more similarity if we use the oscilloscope signal.
 
 ## Directory Structure
 
 ```text
 emi-receiver/
-├── app/
-│   └── emi-receiver/
-│       ├── src/
-│       │   └── emi-receiver.py   # Core logic
-│       └── test/                 # Unit tests
-├── setup.py
-├── LICENSE
-└── README.md
+├───app
+│   ├───emi_receiver
+│   │   ├───src
+│   │   │   └───__pycache__
+│   │   ├───test
+│   │   │   └───__pycache__
+│   │   └───__pycache__
+│   ├───emi_receiver.egg-info
+│   └───__pycache__
+├───build
+│   ├───bdist.win-amd64
+│   └───lib
+│       └───emi_receiver
+│           ├───src
+│           └───test
+├───dist
+└───exampleofuse
 ```
 
 ## License
