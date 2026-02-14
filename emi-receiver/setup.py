@@ -6,7 +6,7 @@ with open("app/README.md", "r", encoding="utf-8") as f:
 
 setup(
     name='emi-receiver',
-    version='0.0.3',
+    version='0.0.4',
     description="See readMe.ma",
     package_dir={"": "app"},
     packages=find_packages(where="app"),

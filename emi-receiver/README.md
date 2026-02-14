@@ -190,7 +190,7 @@ For each test, two configurations are evaluated: a fixed frequency of 140 kHz an
 
 A schematic of this setup is shown below:
 
-<img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/setup.png">
+<img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/setup2.png">
 
 For the Python emulator, we create a **square signal of ±10 mV** with an **attenuation factor of 0.5** (because the function generator has a **50 Ω output resistance** and the **EMI receiver input impedance is 50 Ω**, resulting in a voltage division by two).
 The **measurement time is 50 ms**, with a **sampling time of 1e-8 s**.
@@ -225,6 +225,93 @@ The results obtained from the **industrial EMI receiver** and the **Python emula
   <img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/qpeakEm.png">
 
 We can see that the emulator result is close enough to the industrial receiver, even with local creation of the signal using simple Python frequency generation. We expect to see more similarity if we use the oscilloscope signal.
+
+### Real life measurements
+
+Below a real life measurement of the auxiliary flyback of the LLC. For more details about this open source HW project, prase check the link below: 
+
+[Design_of_1200W_LLC_DCDC](https://github.com/BOAB235/Design_of_1200W_LLC_DCDC)
+
+**Setup**
+
+<img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/IMG_20260209_160925.jpg">
+
+<img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/setup.png">
+
+**EMI measurements with the EN55022/32 limits**
+
+Pyhton code for ploting 
+
+```python
+plt.figure(figsize=(10,5))
+plt.semilogx(freqs*1e-6, peak, label='Peak', color='#FE20FA', linewidth=0.7)
+plt.semilogx(freqs*1e-6, qp, label='Qpeak', color='#C62828', linewidth=0.7) 
+plt.semilogx(freqs*1e-6, avg, label='AVG', color='#2D00B8', linewidth=0.7)
+
+
+# Class A: Limits for industrial/commercial environments → less strict (higher allowed emissions).
+# Class B: Limits for residential environments → more strict (lower allowed emissions).
+freqs0 = np.array([150e3, 500e3, 5e6, 5e6,30e6])
+qp_limits = np.array([66, 56, 56, 60, 60])   # dBµV
+avg_limits = np.array([56, 46, 46, 50,50])  # dBµV
+plt.semilogx(freqs0*1e-6, qp_limits ,   label='Q-Peak EN 55022/32 classB', c="r",linestyle="--")
+plt.semilogx(freqs0*1e-6,avg_limits  ,   label='AVG EN 55022/32 classB', c= "b",linestyle="--")
+
+
+# CISPR 22 / EN 55032 - CLASS A (Industrial) - Mains Port
+# Note: Class A has a step at 500 kHz, not 5 MHz.
+freqs0 = np.array([150e3, 500e3, 500e3, 30e6])
+qp_limits = np.array([79.0, 79.0, 73.0, 73.0])   # dBµV
+avg_limits = np.array([66.0, 66.0, 60.0, 60.0])  # dBµV
+plt.semilogx(freqs0*1e-6, qp_limits ,   label='Q-Peak EN 55022/32 classA', c="#FF931F",linestyle=':')
+plt.semilogx(freqs0*1e-6,avg_limits  ,   label='AVG EN 55022/32 classA', c= "#29DBFF",linestyle=':')
+
+plt.ylim(40, 85)
+plt.yticks(np.arange(40, 85+1, 5))
+plt.grid(True)
+plt.grid(True, which='both', ls=':')
+plt.xlabel('Freq MHz')
+plt.xlim([0.1, 30])
+plt.ylabel('dBµV')
+plt.legend(ncol=4, fontsize=9)
+plt.tight_layout()
+plt.title("DCDC, Auxiliary flyback TNY264 132KHz, RBW 9khz Step 2.5kHz MT 10ms Fs 50Mhz, 150kHz to 30MHz")
+plt.savefig("DCDC_Flyback2.png", bbox_inches='tight')
+plt.show()
+```
+
+<img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/DCDC_Flyback2.png">
+
+**FFT-Based Time-Frequency Analysis of the same signal**
+
+```python
+from emi_receiver import gaussian_stft
+
+freqbins, timebins, dbZ = gaussian_stft(signal=hvp, 
+                                        rbw=9e3, 
+                                        fs=1/Ts, 
+                                        step=2.5e3, 
+                                        kind='db')
+
+ax = sns.heatmap(dbZ, cmap='hot')
+
+nx = min(10, len(timebins)); ix = np.linspace(0, len(timebins)-1, nx, dtype=int)
+ny = min(10, len(freqbins)); iy = np.linspace(0, len(freqbins)-1, ny, dtype=int)
+
+ax.set_xticks(ix); ax.set_xticklabels(np.floor(timebins[ix]*1e3))
+ax.set_yticks(iy); ax.set_yticklabels(np.floor(freqbins[iy]*1e-6))
+
+
+plt.title("FFT-Based Time-Frequency Analysis")
+plt.xlabel("time ms")
+plt.ylabel("freq Mhz")
+plt.savefig("DCDC_Flyback_stft.png", bbox_inches='tight')
+plt.show()
+```
+
+<img src = "https://boab235.github.io/pages/pypi/emi_receiver/imgs/DCDC_Flyback_stft.png">
+
+For more details about this preprocessing, see the  [link](https://github.com/bouz1/PypiContributions/tree/main/emi-receiver/real_life_measurement).
 
 ## Directory Structure
 
