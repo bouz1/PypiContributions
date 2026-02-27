@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMI Receiver Emulator</title>
+  <script src="plotly.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f0f2f5;
+      color: #222;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      padding: 18px 22px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.45rem;
+      color: #1a237e;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 0.78rem;
+      color: #546e7a;
+      margin-bottom: 16px;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: #fff;
+      border: 1px solid #dde3ea;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .card h2 {
+      font-size: 0.88rem;
+      color: #1565c0;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #e3eaf3;
+      padding-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    /* ── Parameter grid ── */
+    .params-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: 7px 14px;
+      font-size: 0.8rem;
+    }
+    .params-grid label {
+      color: #455a64;
+      display: block;
+      margin-bottom: 2px;
+      font-weight: 500;
+    }
+    .params-grid input,
+    .params-grid select {
+      width: 100%;
+      border: 1px solid #b0bec5;
+      border-radius: 4px;
+      color: #222;
+      background: #fafafa;
+      padding: 4px 8px;
+      font-size: 0.84rem;
+      transition: border-color .15s;
+    }
+    .params-grid input:focus,
+    .params-grid select:focus { outline: none; border-color: #1565c0; background: #fff; }
+
+    /* ── Buttons ── */
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .btn {
+      border-radius: 5px;
+      padding: 9px 28px;
+      font-size: 0.92rem;
+      cursor: pointer;
+      border: none;
+      transition: filter .15s, opacity .15s;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn:not(:disabled):hover { filter: brightness(1.08); }
+    .btn-primary  { background: #1565c0; color: #fff; }
+    .btn-success  { background: #2e7d32; color: #fff; }
+    .btn-download { background: #4527a0; color: #fff; }
+
+    /* ── Tabs ── */
+    .tab-bar {
+      display: flex;
+      border-bottom: 2px solid #1565c0;
+      margin-bottom: 0;
+    }
+    .tab-btn {
+      padding: 7px 22px;
+      font-size: 0.87rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #e8eef7;
+      border: 1px solid #c5d3e8;
+      border-bottom: none;
+      color: #546e7a;
+      border-radius: 6px 6px 0 0;
+      margin-right: 3px;
+      transition: background .15s, color .15s;
+    }
+    .tab-btn.active { background: #1565c0; color: #fff; border-color: #1565c0; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── File upload zone ── */
+    .upload-zone {
+      display: block;
+      border: 2px dashed #90a4ae;
+      border-radius: 8px;
+      padding: 22px;
+      text-align: center;
+      color: #546e7a;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      margin-bottom: 10px;
+    }
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: #1565c0; background: #e8f0fe; color: #1565c0;
+    }
+    .upload-zone.has-file { border-color: #2e7d32; background: #e8f5e9; color: #1b5e20; }
+    .upload-zone input[type=file] { display: none; }
+    #upload-info { font-size: 0.78rem; color: #37474f; min-height: 18px; margin-bottom: 6px; }
+
+    .fs-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 0.82rem;
+    }
+    .fs-row label { color: #455a64; font-weight: 500; min-width: 200px; }
+    .fs-row input {
+      width: 160px;
+      border: 1px solid #b0bec5;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 0.84rem;
+      background: #fafafa;
+    }
+    .fs-row input:focus { outline: none; border-color: #1565c0; }
+    .fs-toggle { display: flex; border: 1px solid #b0bec5; border-radius: 4px; overflow: hidden; }
+    .fs-toggle button {
+      padding: 4px 14px;
+      border: none;
+      font-size: 0.8rem;
+      cursor: pointer;
+      background: #eceff1;
+      color: #546e7a;
+      transition: background .15s, color .15s;
+      font-weight: 600;
+    }
+    .fs-toggle button.active { background: #1565c0; color: #fff; }
+
+    /* ── Log ── */
+    #log-box {
+      background: #f5f5f5;
+      border: 1px solid #cfd8dc;
+      border-radius: 5px;
+      padding: 8px 12px;
+      font-size: 0.74rem;
+      font-family: 'Consolas', 'Courier New', monospace;
+      color: #1b5e20;
+      white-space: pre-wrap;
+      min-height: 36px;
+      max-height: 160px;
+      overflow-y: auto;
+      margin-bottom: 14px;
+    }
+    #log-box .err { color: #b71c1c; }
+
+    /* ── Progress ── */
+    #progress-wrap { display: none; margin-bottom: 10px; }
+    #progress-bar-outer { background: #e0e0e0; border-radius: 4px; height: 8px; width: 100%; }
+    #progress-bar-inner { height: 8px; background: #1565c0; border-radius: 4px; width: 0%; transition: width .1s; }
+    #progress-label { font-size: 0.75rem; color: #546e7a; text-align: right; margin-top: 2px; }
+
+    .plot-wrap { margin-bottom: 14px; }
+    hr { border: none; border-top: 1px solid #dde3ea; margin: 10px 0; }
+
+    /* ── Checkbox panel ── */
+    .cb-panel {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      padding: 7px 2px 10px;
+      font-size: 0.82rem;
+    }
+    .cb-group-label { color: #455a64; font-weight: 700; font-size: 0.78rem; text-transform: uppercase; letter-spacing: .4px; }
+    .cb-label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+      color: #222;
+      user-select: none;
+    }
+    .cb-label input[type=checkbox] { width: 14px; height: 14px; cursor: pointer; accent-color: #1565c0; }
+    .cb-sep { color: #b0bec5; font-size: 1rem; padding: 0 2px; }
+    .btn-csv  { background: #00695c; color: #fff; padding: 5px 16px; font-size: 0.8rem; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+    .btn-csv:hover { filter: brightness(1.1); }
+
+    /* ── Shared-plots notice ── */
+    .shared-note {
+      text-align: center;
+      font-size: 0.76rem;
+      color: #78909c;
+      background: #e8f0fe;
+      border: 1px solid #c5d8f8;
+      border-radius: 0 0 6px 6px;
+      padding: 5px 10px;
+      margin-bottom: 14px;
+      letter-spacing: 0.2px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>EMI Receiver Emulator</h1>
+<p class="subtitle">CISPR Band B · EN 55032</p>
+
+<!-- ════════════════════════════ TABS ═══════════════════════════════ -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('tab-gen',this)">⚙ Generated Signal</button>
+  <button class="tab-btn"        onclick="switchTab('tab-file',this)">📂 Load File</button>
+</div>
+
+<div class="shared-note">📊 The Time-Domain and EMI Spectrum plots below are <b>shared</b> — they always show the result of the last run, regardless of which tab is active.</div>
+
+<!-- ─────────────────── TAB 1 : Generated Signal ─────────────────── -->
+<div id="tab-gen" class="tab-content active">
+  <br/>
+  <div class="card">
+    <h2>Signal Parameters</h2>
+    <div class="params-grid">
+      <div><label>Fs (Hz)</label>         <input id="p-fs"    type="number" value="50000000"/></div>
+      <div><label>Duration (s)</label>    <input id="p-dur"   type="number" value="0.001" step="0.0001"/></div>
+      <div><label>Signal Freq (Hz)</label><input id="p-fsig"  type="number" value="100000"/></div>
+      <div><label>Clip Level (V)</label>  <input id="p-clip"  type="number" value="0.01"  step="0.001"/></div>
+      <div><label>Noise σ (V)</label>     <input id="p-noise" type="number" value="0.001" step="0.0001"/></div>
+      <div><label>Noise Seed</label>      <input id="p-seed"  type="number" value="0"/></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>EMI Receiver Parameters</h2>
+    <div class="params-grid">
+      <div><label>RBW (Hz)</label>   <input id="p-rbw"     type="number" value="9000"/></div>
+      <div><label>Step (Hz)</label>  <input id="p-step"    type="number" value="2500"/></div>
+      <div>
+        <label>CISPR Band</label>
+        <select id="p-band" disabled style="opacity:.7;cursor:not-allowed">
+          <option value="B" selected>B (150 kHz – 30 MHz)</option>
+        </select>
+      </div>
+      <div><label>Overlap %</label>  <input id="p-overlap" type="number" value="90" min="50" max="99"/></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary"  id="run-gen-btn"  onclick="runGenerated()">▶  Run EMI Analysis</button>
+    <button class="btn btn-download" id="dl-btn"       onclick="downloadExampleSignal()">⬇  Download Example Signal</button>
+  </div>
+</div>
+
+<!-- ─────────────────── TAB 2 : Load File ────────────────────────── -->
+<div id="tab-file" class="tab-content">
+  <br/>
+  <div class="card">
+    <h2>Load Signal File — CSV / TXT (one voltage value per line)</h2>
+
+    <label class="upload-zone" id="upload-zone" for="file-input"
+           ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+      <input type="file" id="file-input" accept=".csv,.txt" onchange="onFileSelected(this)"/>
+      <div id="upload-icon" style="font-size:2rem; margin-bottom:6px;">📄</div>
+      <div id="upload-text">Click to select a <b>.csv</b> or <b>.txt</b> file  (or drag &amp; drop)</div>
+      <div style="font-size:0.73rem; margin-top:4px; color:#78909c;">
+        One voltage value per line — optional column header is auto-detected and skipped
+      </div>
+    </label>
+    <div id="upload-info">No file selected.</div>
+
+    <hr/>
+
+    <div class="fs-row">
+      <div class="fs-toggle">
+        <button id="mode-fs-btn" class="active" onclick="setFsMode('fs')">Fs</button>
+        <button id="mode-ts-btn"                onclick="setFsMode('ts')">Ts</button>
+      </div>
+      <label id="fs-label">Sampling Frequency Fs (Hz)</label>
+      <input  id="p-file-fs" type="number" value="50000000" placeholder="e.g. 50000000"/>
+      <span   id="fs-unit"   style="color:#546e7a; font-size:0.8rem; font-weight:600;">Hz</span>
+    </div>
+
+    <br/>
+
+    <div class="params-grid">
+      <div><label>RBW (Hz)</label>  <input id="p2-rbw"     type="number" value="9000"/></div>
+      <div><label>Step (Hz)</label> <input id="p2-step"    type="number" value="2500"/></div>
+      <div>
+        <label>CISPR Band</label>
+        <select id="p2-band" disabled style="opacity:.7;cursor:not-allowed">
+          <option value="B" selected>B (150 kHz – 30 MHz)</option>
+        </select>
+      </div>
+      <div><label>Overlap %</label> <input id="p2-overlap" type="number" value="90" min="50" max="99"/></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-success" id="run-file-btn" onclick="runFromFile()">▶  Run EMI from File</button>
+  </div>
+
+  <div id="progress-wrap">
+    <div id="progress-bar-outer"><div id="progress-bar-inner"></div></div>
+    <div id="progress-label">Parsing file…</div>
+  </div>
+</div>
+
+<!-- ════════════════════ LOG + PLOTS (shared) ═══════════════════════ -->
+<div id="log-box">Auto-running with default signal…</div>
+
+<div class="plot-wrap card">
+  <h2>Time-Domain Signal (first 10 000 samples)</h2>
+  <div id="plot-signal" style="height:220px;"></div>
+</div>
+
+<div class="plot-wrap card">
+  <h2>EMI Spectrum — Peak / Quasi-Peak / Average  [dBµV]</h2>
+  <div class="cb-panel">
+    <span class="cb-group-label">Detectors:</span>
+    <label class="cb-label"><input type="checkbox" id="cb-peak" checked onchange="refreshEMI()"> Peak</label>
+    <label class="cb-label"><input type="checkbox" id="cb-qp"   checked onchange="refreshEMI()"> Q-Peak</label>
+    <label class="cb-label"><input type="checkbox" id="cb-avg"  checked onchange="refreshEMI()"> AVG</label>
+    <span class="cb-sep">|</span>
+    <span class="cb-group-label">Limits:</span>
+    <label class="cb-label"><input type="checkbox" id="cb-limB" checked onchange="refreshEMI()"> Class B</label>
+    <label class="cb-label"><input type="checkbox" id="cb-limA" checked onchange="refreshEMI()"> Class A</label>
+    <span class="cb-sep">|</span>
+    <button class="btn-csv" onclick="saveEmiCsv()">💾 Save as CSV</button>
+  </div>
+  <div id="plot-emi" style="height:480px;"></div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT  –  Exact port of emi_receiver.py
+     ══════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ------------------------------------------------------------------ *
+ * 0.  SEEDED PRNG  (Mulberry32 + Box-Muller)                         *
+ * ------------------------------------------------------------------ */
+function makePRNG(seed) {
+  let s = (seed >>> 0) + 0x6D2B79F5;
+  return function () {
+    s  = Math.imul(s ^ (s >>> 15), s | 1);
+    s ^= s + Math.imul(s ^ (s >>> 7), s | 61);
+    return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function gaussianNoise(n, sigma, seed) {
+  const rng = makePRNG(seed >>> 0);
+  const out = new Float64Array(n);
+  for (let i = 0; i < n; i += 2) {
+    let u, v, s;
+    do { u = rng()*2-1; v = rng()*2-1; s = u*u+v*v; } while (s >= 1 || s === 0);
+    const m = Math.sqrt(-2*Math.log(s)/s);
+    out[i]   = sigma * u * m;
+    if (i+1 < n) out[i+1] = sigma * v * m;
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ *
+ * 1.  SIGNAL GENERATION                                              *
+ * ------------------------------------------------------------------ */
+function generateSignal(fs, duration, f_sig, clip, noiseSigma, seed) {
+  const N  = Math.round(fs * duration);
+  const sig = new Float64Array(N);
+  const t   = new Float64Array(N);
+  const dt  = 1.0 / fs;
+  for (let i = 0; i < N; i++) {
+    t[i] = i * dt;
+    let v = Math.sin(2 * Math.PI * f_sig * t[i]);
+    if (v >  clip) v =  clip;
+    if (v < -clip) v = -clip;
+    sig[i] = v;
+  }
+  const noise = gaussianNoise(N, noiseSigma, seed);
+  for (let i = 0; i < N; i++) sig[i] += noise[i];
+  return { t, signal: sig, N };
+}
+
+/* ------------------------------------------------------------------ *
+ * 2.  RADIX-2 FFT                                                    *
+ * ------------------------------------------------------------------ */
+function fft_inplace(re, im, inverse) {
+  const N = re.length;
+  for (let i = 1, j = 0; i < N; i++) {
+    let bit = N >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      let t = re[i]; re[i]=re[j]; re[j]=t;
+          t = im[i]; im[i]=im[j]; im[j]=t;
+    }
+  }
+  const sign = inverse ? 1.0 : -1.0;
+  for (let len = 2; len <= N; len <<= 1) {
+    const ang = sign * 2 * Math.PI / len;
+    const wRe = Math.cos(ang), wIm = Math.sin(ang);
+    for (let i = 0; i < N; i += len) {
+      let uRe = 1, uIm = 0;
+      const half = len >> 1;
+      for (let k = 0; k < half; k++) {
+        const p = i+k, q = i+k+half;
+        const vRe = uRe*re[q] - uIm*im[q];
+        const vIm = uRe*im[q] + uIm*re[q];
+        re[q] = re[p]-vRe; im[q] = im[p]-vIm;
+        re[p] += vRe;      im[p] += vIm;
+        const nRe = uRe*wRe - uIm*wIm;
+        uIm = uRe*wIm + uIm*wRe; uRe = nRe;
+      }
+    }
+  }
+  if (inverse) for (let i=0;i<N;i++){re[i]/=N; im[i]/=N;}
+}
+function nextPow2(n) { let p=1; while(p<n) p<<=1; return p; }
+
+/* ------------------------------------------------------------------ *
+ * 3.  BLUESTEIN FFT  (arbitrary N)                                   *
+ * ------------------------------------------------------------------ */
+function fft_bluestein(xr_in, xi_in, N) {
+  const M = nextPow2(2*N-1);
+  const wr=new Float64Array(N), wi=new Float64Array(N);
+  for(let n=0;n<N;n++){const a=Math.PI*n*n/N; wr[n]=Math.cos(a); wi[n]=Math.sin(a);}
+  const ar=new Float64Array(M), ai=new Float64Array(M);
+  for(let n=0;n<N;n++){ar[n]=xr_in[n]*wr[n]+xi_in[n]*wi[n]; ai[n]=xi_in[n]*wr[n]-xr_in[n]*wi[n];}
+  const br=new Float64Array(M), bi=new Float64Array(M);
+  br[0]=wr[0]; bi[0]=wi[0];
+  for(let n=1;n<N;n++){br[n]=wr[n];bi[n]=wi[n];br[M-n]=wr[n];bi[M-n]=wi[n];}
+  fft_inplace(ar,ai,false); fft_inplace(br,bi,false);
+  for(let k=0;k<M;k++){const re=ar[k]*br[k]-ai[k]*bi[k],im=ar[k]*bi[k]+ai[k]*br[k];ar[k]=re;ai[k]=im;}
+  fft_inplace(ar,ai,true);
+  const yr=new Float64Array(N), yi=new Float64Array(N);
+  for(let k=0;k<N;k++){yr[k]=ar[k]*wr[k]+ai[k]*wi[k]; yi[k]=ai[k]*wr[k]-ar[k]*wi[k];}
+  return [yr,yi];
+}
+function fft(xr, xi) {
+  const N = xr.length;
+  if (N===0) return [new Float64Array(0), new Float64Array(0)];
+  if ((N & (N-1))===0){const r=xr.slice(),i=xi.slice(); fft_inplace(r,i,false); return [r,i];}
+  return fft_bluestein(xr, xi, N);
+}
+
+/* ------------------------------------------------------------------ *
+ * 4.  GAUSSIAN WINDOW                                                *
+ * ------------------------------------------------------------------ */
+function gaussianWindow(M, std) {
+  const w=new Float64Array(M), mid=(M-1)/2;
+  for(let n=0;n<M;n++){const x=(n-mid)/std; w[n]=Math.exp(-0.5*x*x);}
+  return w;
+}
+
+/* ------------------------------------------------------------------ *
+ * 5.  STFT  (scipy.signal.stft: boundary=zeros, padded=True)         *
+ * ------------------------------------------------------------------ */
+function stft(signal, fs, window_arr, nperseg, noverlap, nfft) {
+  const step    = nperseg - noverlap;
+  const half_w  = Math.floor(nperseg/2);
+  const n_in    = signal.length;
+
+  const prelen  = n_in + 2*half_w;
+  const pre     = new Float64Array(prelen);
+  for(let i=0;i<n_in;i++) pre[i+half_w] = signal[i];
+
+  const n_frames = Math.ceil((prelen - nperseg) / step) + 1;
+  const needed   = (n_frames-1)*step + nperseg;
+  const sig      = new Float64Array(needed);
+  sig.set(pre);
+
+  const n_freq = Math.floor(nfft/2)+1;
+  const freqs  = new Float64Array(n_freq);
+  for(let f=0;f<n_freq;f++) freqs[f] = f*fs/nfft;
+
+  const spec = new Array(n_frames);
+  for(let t=0;t<n_frames;t++) spec[t]=new Float64Array(n_freq);
+
+  const xr=new Float64Array(nfft), xi=new Float64Array(nfft);
+  for(let t=0;t<n_frames;t++){
+    const start=t*step;
+    xr.fill(0); xi.fill(0);
+    for(let k=0;k<nperseg;k++) xr[k]=sig[start+k]*window_arr[k];
+    const [yr,yi]=fft(xr,xi);
+    for(let f=0;f<n_freq;f++) spec[t][f]=Math.sqrt(yr[f]*yr[f]+yi[f]*yi[f])*2.0;
+  }
+  return {freqs, spec, n_frames, n_freq};
+}
+
+/* ------------------------------------------------------------------ *
+ * 6.  QUASI-PEAK DETECTOR                                            *
+ * ------------------------------------------------------------------ */
+function quasiPeakFilter(ts, n, dt, tau_c, tau_d) {
+  const ac=1.0-Math.exp(-dt/tau_c), ad=1.0-Math.exp(-dt/tau_d);
+  let cur=0.0, mx=0.0;
+  for(let i=0;i<n;i++){
+    const v=ts[i];
+    if(v>cur) cur+=ac*(v-cur); else cur-=ad*cur;
+    if(cur>mx) mx=cur;
+  }
+  return mx;
+}
+
+/* ------------------------------------------------------------------ *
+ * 7.  EMI RECEIVER                                                   *
+ * ------------------------------------------------------------------ */
+function receiver(signal, fs, rbw, step, band, overlapPct) {
+  let tau_c, tau_d;
+  if      (band==='A'){tau_c=45e-3; tau_d=500e-3;}
+  else if (band==='B'){tau_c=1e-3;  tau_d=160e-3;}
+  else                {tau_c=1e-3;  tau_d=550e-3;}
+
+  const sigma_f  = rbw/(2*Math.sqrt(2*Math.log(2)));
+  const sigma_t  = 1.0/(2*Math.PI*sigma_f);
+  const wlen_s   = 6*sigma_t;
+  let nperseg    = Math.floor(wlen_s*fs);
+  if(nperseg%2===0) nperseg++;
+
+  const nfft_tgt = Math.round(fs/step);
+  const nfft     = (nfft_tgt < nperseg) ? nperseg : nfft_tgt;
+  const act_step = fs/nfft;
+
+  let window = gaussianWindow(nperseg, sigma_t*fs);
+  let wsum=0; for(let i=0;i<nperseg;i++) wsum+=window[i];
+  for(let i=0;i<nperseg;i++) window[i]/=wsum;
+
+  const noverlap  = Math.floor(nperseg * overlapPct/100);
+  const step_size = nperseg - noverlap;
+  const dt_det    = step_size / fs;
+
+  log(`--------------------------------------------------`);
+  log(`EMI Receiver Configuration:`);
+  log(`  RBW           : ${rbw} Hz`);
+  log(`  Step Size     : ${act_step.toFixed(2)} Hz  (Target: ${step} Hz)`);
+  log(`  Window Size   : ${nperseg} samples`);
+  log(`  FFT Size      : ${nfft} samples  (Zero-Pad: ${nfft > nperseg})`);
+  log(`  Detector dT   : ${(dt_det*1e3).toFixed(3)} ms`);
+  log(`--------------------------------------------------`);
+  if(dt_det > tau_c) log('WARNING: Sample rate / Overlap too low for accurate QP!');
+
+  const {freqs, spec, n_frames, n_freq} = stft(signal, fs, window, nperseg, noverlap, nfft);
+  log(`  Frames computed: ${n_frames}`);
+
+  const peak_v=new Float64Array(n_freq);
+  const avg_v =new Float64Array(n_freq);
+  const qp_v  =new Float64Array(n_freq);
+  const tb    =new Float64Array(n_frames);
+
+  for(let f=0;f<n_freq;f++){
+    let mx=0, sm=0;
+    for(let t=0;t<n_frames;t++){const v=spec[t][f]; tb[t]=v; if(v>mx) mx=v; sm+=v;}
+    peak_v[f]=mx; avg_v[f]=sm/n_frames;
+    qp_v[f]=quasiPeakFilter(tb, n_frames, dt_det, tau_c, tau_d);
+  }
+
+  function dbuv(a){
+    const o=new Float64Array(a.length);
+    for(let i=0;i<a.length;i++) o[i]=20*Math.log10(Math.max(a[i],1e-12)*1e6);
+    return o;
+  }
+  return {freqs, peak:dbuv(peak_v), avg:dbuv(avg_v), qp:dbuv(qp_v)};
+}
+
+/* ------------------------------------------------------------------ *
+ * 8.  LOG                                                             *
+ * ------------------------------------------------------------------ */
+const logEl = document.getElementById('log-box');
+function log(msg, isErr) {
+  if (isErr) {
+    const s=document.createElement('span');
+    s.className='err'; s.textContent=msg+'\n'; logEl.appendChild(s);
+  } else {
+    logEl.textContent += msg + '\n';
+  }
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function clearLog() { logEl.textContent = ''; }
+
+/* ------------------------------------------------------------------ *
+ * 9.  PLOTS  (light theme)                                            *
+ * ------------------------------------------------------------------ */
+const LAYOUT_BASE = {
+  paper_bgcolor: '#fff',
+  plot_bgcolor:  '#fafafa',
+  font: { color: '#222', size: 11 },
+  margin: { l:60, r:20, t:10, b:48 },
+  xaxis: { gridcolor:'#dde3ea', zerolinecolor:'#ccc', color:'#333', linecolor:'#aaa', showline:true },
+  yaxis: { gridcolor:'#dde3ea', zerolinecolor:'#ccc', color:'#333', linecolor:'#aaa', showline:true },
+  legend: { bgcolor:'#fff', bordercolor:'#dde3ea', borderwidth:1, font:{size:10} }
+};
+
+function plotSignal(t, signal, Nplot) {
+  const tS = Array.from(t.subarray(0,Nplot)).map(v=>v*1e6);
+  const sS = Array.from(signal.subarray(0,Nplot));
+  Plotly.react('plot-signal', [{
+    x:tS, y:sS, mode:'lines',
+    line:{color:'#1565c0', width:0.9}, name:'Signal'
+  }], {
+    ...LAYOUT_BASE,
+    xaxis:{...LAYOUT_BASE.xaxis, title:{text:'Time (µs)',font:{size:11}}},
+    yaxis:{...LAYOUT_BASE.yaxis, title:{text:'Amplitude (V)',font:{size:11}}}
+  }, {responsive:true});
+}
+
+/* ── Global storage of last EMI result (for checkboxes + CSV) ─────── */
+let g_emiResult = null;   // { freqs_hz, peak, qp, avg }
+
+function cb(id){ return document.getElementById(id).checked; }
+
+function computeYRange(traces) {
+  /* Auto-scale y from all visible data + limits, snapped to 5 dBµV grid */
+  let lo = Infinity, hi = -Infinity;
+  for (const tr of traces) {
+    for (const v of tr.y) {
+      if (v < lo) lo = v;
+      if (v > hi) hi = v;
+    }
+  }
+  if (!isFinite(lo)) return [20, 90];
+  lo = Math.floor((lo - 5) / 5) * 5;
+  hi = Math.ceil( (hi + 5) / 5) * 5;
+  return [lo, hi];
+}
+
+function buildEmiTraces(freqs_hz, peak, qp, avg) {
+  const f  = Array.from(freqs_hz).map(v=>v*1e-6);
+  const fB = [0.15,0.5,5.0,5.0,30.0], qpB=[66,56,56,60,60], avB=[56,46,46,50,50];
+  const fA = [0.15,0.5,0.5,30.0],     qpA=[79,79,73,73],     avA=[66,66,60,60];
+  const traces = [];
+  if (cb('cb-peak')) traces.push({x:f, y:Array.from(peak), mode:'lines', name:'Peak',   line:{color:'#1b5e20',width:0.9}});
+  if (cb('cb-qp'))   traces.push({x:f, y:Array.from(qp),   mode:'lines', name:'Q-Peak', line:{color:'#b71c1c',width:0.9}});
+  if (cb('cb-avg'))  traces.push({x:f, y:Array.from(avg),  mode:'lines', name:'AVG',    line:{color:'#0d47a1',width:0.9}});
+  if (cb('cb-limB')) {
+    traces.push({x:fB, y:qpB, mode:'lines', name:'Q-Peak EN55032 Class B', line:{color:'#e53935',width:1.6,dash:'dash'}});
+    traces.push({x:fB, y:avB, mode:'lines', name:'AVG EN55032 Class B',    line:{color:'#1e88e5',width:1.6,dash:'dash'}});
+  }
+  if (cb('cb-limA')) {
+    traces.push({x:fA, y:qpA, mode:'lines', name:'Q-Peak EN55032 Class A', line:{color:'#e91e63',width:1.6,dash:'dot'}});
+    traces.push({x:fA, y:avA, mode:'lines', name:'AVG EN55032 Class A',    line:{color:'#00897b',width:1.6,dash:'dot'}});
+  }
+  return traces;
+}
+
+function plotEMI(freqs_hz, peak, qp, avg) {
+  g_emiResult = { freqs_hz, peak, qp, avg };  // store for refreshEMI + saveEmiCsv
+  refreshEMI();
+}
+
+function refreshEMI() {
+  if (!g_emiResult) return;
+  const {freqs_hz, peak, qp, avg} = g_emiResult;
+  const traces = buildEmiTraces(freqs_hz, peak, qp, avg);
+  const [yLo, yHi] = computeYRange(traces);
+  Plotly.react('plot-emi', traces, {
+    ...LAYOUT_BASE,
+    xaxis:{
+      ...LAYOUT_BASE.xaxis,
+      type:'log', range:[Math.log10(0.15),Math.log10(30)],
+      title:{text:'Frequency (MHz)',font:{size:11}},
+      tickvals:[0.15,0.2,0.3,0.5,1,2,3,5,10,20,30],
+      ticktext:['0.15','0.2','0.3','0.5','1','2','3','5','10','20','30']
+    },
+    yaxis:{...LAYOUT_BASE.yaxis, range:[yLo, yHi], dtick:5, title:{text:'dBµV',font:{size:11}}},
+    margin:{l:60,r:20,t:16,b:52}
+  }, {responsive:true});
+}
+
+/* ── Save EMI result as CSV ─────────────────────────────────────────── */
+function saveEmiCsv() {
+  if (!g_emiResult) { alert('No EMI result yet — run the analysis first.'); return; }
+  const {freqs_hz, peak, qp, avg} = g_emiResult;
+  const N = freqs_hz.length;
+  const rows = ['freq_Hz,peak_dBuV,qpeak_dBuV,avg_dBuV'];
+  for (let i = 0; i < N; i++) {
+    rows.push(`${freqs_hz[i].toFixed(2)},${peak[i].toFixed(4)},${qp[i].toFixed(4)},${avg[i].toFixed(4)}`);
+  }
+  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = 'emi_spectrum.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ------------------------------------------------------------------ *
+ * 10.  PROGRESS BAR                                                   *
+ * ------------------------------------------------------------------ */
+function setProgress(pct, label) {
+  const w=document.getElementById('progress-wrap');
+  if(pct===null){w.style.display='none'; return;}
+  w.style.display='block';
+  document.getElementById('progress-bar-inner').style.width = pct+'%';
+  document.getElementById('progress-label').textContent = label||'';
+}
+
+/* ------------------------------------------------------------------ *
+ * 11.  RUN — GENERATED SIGNAL                                         *
+ * ------------------------------------------------------------------ */
+async function runGenerated() {
+  const btn=document.getElementById('run-gen-btn');
+  btn.disabled=true; btn.textContent='⏳  Computing…';
+  clearLog();
+  await tick();
+  try {
+    const fs      = +document.getElementById('p-fs').value;
+    const dur     = +document.getElementById('p-dur').value;
+    const f_sig   = +document.getElementById('p-fsig').value;
+    const clip    = +document.getElementById('p-clip').value;
+    const nSig    = +document.getElementById('p-noise').value;
+    const seed    = +document.getElementById('p-seed').value;
+    const rbw     = +document.getElementById('p-rbw').value;
+    const step    = +document.getElementById('p-step').value;
+    const band    =  document.getElementById('p-band').value;
+    const overlap = +document.getElementById('p-overlap').value;
+
+    log(`Generating signal…  Fs=${fs/1e6} MHz  dur=${dur*1e3} ms  f_sig=${f_sig/1e3} kHz`);
+    const t0 = performance.now();
+    const {t, signal, N} = generateSignal(fs, dur, f_sig, clip, nSig, seed);
+    log(`Signal: ${N} samples  [${(performance.now()-t0).toFixed(1)} ms]`);
+    plotSignal(t, signal, Math.min(10000, N));
+
+    log(`\nRunning EMI Receiver…`);
+    await tick();
+    const t1 = performance.now();
+    const {freqs, peak, qp, avg} = receiver(signal, fs, rbw, step, band, overlap);
+    log(`\nEMI Receiver done  [${((performance.now()-t1)/1e3).toFixed(2)} s]`);
+    plotEMI(freqs, peak, qp, avg);
+    log(`\n✔  Done!`);
+  } catch(e){ log(`\n❌ ${e.message}\n${e.stack}`, true); }
+  finally   { btn.disabled=false; btn.textContent='▶  Run EMI Analysis'; }
+}
+
+/* ------------------------------------------------------------------ *
+ * 12.  DOWNLOAD EXAMPLE SIGNAL  (amplitude × 10)                     *
+ *      Uses same default signal as the notebook. Saves as .txt.      *
+ * ------------------------------------------------------------------ */
+function downloadExampleSignal() {
+  const dlBtn = document.getElementById('dl-btn');
+  dlBtn.disabled = true; dlBtn.textContent = '⏳  Building…';
+  setTimeout(() => {
+    try {
+      const {signal} = generateSignal(50e6, 0.001, 100e3, 0.01, 0.001, 0);
+      // amplitude × 10 + header
+      const lines = ['CH1'];
+      for(let i=0;i<signal.length;i++) lines.push((signal[i]*10).toFixed(8));
+      const blob = new Blob([lines.join('\n')], {type:'text/plain'});
+      const a    = document.createElement('a');
+      a.href     = URL.createObjectURL(blob);
+      a.download = 'example_signal_x10.txt';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } finally {
+      dlBtn.disabled=false; dlBtn.textContent='⬇  Download Example Signal (×10)';
+    }
+  }, 20);
+}
+
+/* ------------------------------------------------------------------ *
+ * 13.  FILE UPLOAD  — chunked streaming parser                        *
+ *                                                                     *
+ *  Handles very large files (100 M+ lines / ~800 MB) by reading in   *
+ *  8 MB text chunks, parsing into pre-allocated 4 M-sample blocks,   *
+ *  then concatenating into one final Float64Array.                   *
+ *  First non-numeric line is auto-detected as header and skipped.    *
+ * ------------------------------------------------------------------ */
+const CHUNK_BYTES = 8 * 1024 * 1024;   // 8 MB per read
+const BLOCK_SIZE  = 4_000_000;          // 4 M samples per block
+
+let g_uploadedFile = null;
+let fsMode = 'fs';
+
+function setFsMode(mode) {
+  fsMode = mode;
+  document.getElementById('mode-fs-btn').classList.toggle('active', mode==='fs');
+  document.getElementById('mode-ts-btn').classList.toggle('active', mode==='ts');
+  document.getElementById('fs-label').textContent =
+    mode==='fs' ? 'Sampling Frequency Fs (Hz)' : 'Sampling Period Ts (s)';
+  document.getElementById('fs-unit').textContent = mode==='fs' ? 'Hz' : 's';
+}
+
+function onDragOver(e)  { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag-over'); }
+function onDragLeave(e) { document.getElementById('upload-zone').classList.remove('drag-over'); }
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if(f) acceptFile(f);
+}
+function onFileSelected(input) { if(input.files[0]) acceptFile(input.files[0]); }
+function acceptFile(file) {
+  const zone = document.getElementById('upload-zone');
+  zone.classList.add('has-file');
+  document.getElementById('upload-icon').textContent = '✅';
+  document.getElementById('upload-text').textContent = file.name;
+  document.getElementById('upload-info').textContent =
+    `File: ${file.name}   Size: ${(file.size/1e6).toFixed(2)} MB`;
+  g_uploadedFile = file;
+}
+
+async function parseFileChunked(file) {
+  const total   = file.size;
+  let offset    = 0;
+  let leftover  = '';
+  let isFirst   = true;
+  let hdrSkip   = false;
+
+  const blocks  = [];
+  let curBlock  = new Float64Array(BLOCK_SIZE);
+  let curIdx    = 0;
+  let count     = 0;
+
+  function push(v) {
+    curBlock[curIdx++] = v;
+    count++;
+    if(curIdx === BLOCK_SIZE){
+      blocks.push(curBlock);
+      curBlock = new Float64Array(BLOCK_SIZE);
+      curIdx   = 0;
+    }
+  }
+
+  while(offset < total) {
+    const blob = file.slice(offset, offset + CHUNK_BYTES);
+    const text = await blob.text();
+    offset    += CHUNK_BYTES;
+
+    const lines = (leftover + text).split('\n');
+    leftover    = lines.pop();   // last (possibly partial) line
+
+    for(const raw of lines) {
+      const line = raw.trim();
+      if(!line) continue;
+      if(isFirst) {
+        isFirst = false;
+        const n = parseFloat(line);
+        if(isNaN(n)){ hdrSkip=true; continue; }  // header → skip
+        push(n); continue;
+      }
+      const n = parseFloat(line);
+      if(!isNaN(n)) push(n);
+    }
+
+    const pct = Math.round(Math.min(offset,total)/total * 94);
+    setProgress(pct, `Parsing… ${count.toLocaleString()} samples read`);
+    await tick();
+  }
+
+  // Last leftover line
+  if(leftover.trim()){
+    const n = parseFloat(leftover.trim());
+    if(!isNaN(n)) push(n);
+  }
+
+  if(hdrSkip) log('  (Non-numeric first line detected — treated as header and skipped)');
+
+  // Concatenate blocks
+  const out = new Float64Array(count);
+  let dst   = 0;
+  for(const blk of blocks){ out.set(blk, dst); dst += BLOCK_SIZE; }
+  if(curIdx > 0) out.set(curBlock.subarray(0, curIdx), dst);
+  return out;
+}
+
+async function runFromFile() {
+  if(!g_uploadedFile){ alert('Please select a file first.'); return; }
+
+  const btn = document.getElementById('run-file-btn');
+  btn.disabled=true; btn.textContent='⏳  Parsing…';
+  clearLog();
+  setProgress(0, 'Reading file…');
+
+  try {
+    const fsVal = +document.getElementById('p-file-fs').value;
+    if(!fsVal || isNaN(fsVal) || fsVal<=0) throw new Error('Invalid Fs / Ts value');
+    const fs = (fsMode==='fs') ? fsVal : 1.0/fsVal;
+
+    log(`File: ${g_uploadedFile.name}  (${(g_uploadedFile.size/1e6).toFixed(2)} MB)`);
+    log(`Fs = ${fs>=1e6?(fs/1e6).toFixed(3)+' MHz':fs>=1e3?(fs/1e3).toFixed(3)+' kHz':fs+' Hz'}`);
+    await tick();
+
+    const signal = await parseFileChunked(g_uploadedFile);
+    log(`Signal loaded: ${signal.length.toLocaleString()} samples`);
+    setProgress(100,'File parsed ✔'); await tick(); setProgress(null);
+
+    // Time-domain plot  (first 10 000 samples)
+    const Nplot = Math.min(10000, signal.length);
+    const dt    = 1.0/fs;
+    const tFk   = new Float64Array(Nplot);
+    for(let i=0;i<Nplot;i++) tFk[i]=i*dt;
+    plotSignal(tFk, signal, Nplot);
+
+    const rbw     = +document.getElementById('p2-rbw').value;
+    const step    = +document.getElementById('p2-step').value;
+    const band    =  document.getElementById('p2-band').value;
+    const overlap = +document.getElementById('p2-overlap').value;
+
+    log(`\nRunning EMI Receiver…`);
+    btn.textContent='⏳  Computing…';
+    await tick();
+
+    const t1 = performance.now();
+    const {freqs, peak, qp, avg} = receiver(signal, fs, rbw, step, band, overlap);
+    log(`\nEMI Receiver done  [${((performance.now()-t1)/1e3).toFixed(2)} s]`);
+    plotEMI(freqs, peak, qp, avg);
+    log(`\n✔  Done!`);
+
+  } catch(e){ log(`\n❌ ${e.message}\n${e.stack}`, true); setProgress(null); }
+  finally   { btn.disabled=false; btn.textContent='▶  Run EMI from File'; }
+}
+
+/* ------------------------------------------------------------------ *
+ * 14.  TABS                                                           *
+ * ------------------------------------------------------------------ */
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ------------------------------------------------------------------ *
+ * 15.  UTILITIES                                                      *
+ * ------------------------------------------------------------------ */
+function tick() { return new Promise(r => setTimeout(r,10)); }
+
+/* ------------------------------------------------------------------ *
+ * 16.  AUTO-RUN on page load                                          *
+ * ------------------------------------------------------------------ */
+window.addEventListener('load', () => runGenerated());
+</script>
+
+</body>
+</html>

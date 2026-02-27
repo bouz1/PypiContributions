@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EMI Receiver – HTML/JS Port</title>
+  <script src="plotly.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1a1a2e;
+      color: #e0e0e0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.4rem;
+      color: #a0c4ff;
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.78rem;
+      color: #7a8fa6;
+      margin-bottom: 18px;
+    }
+
+    .card {
+      background: #16213e;
+      border: 1px solid #0f3460;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin-bottom: 18px;
+    }
+
+    .card h2 {
+      font-size: 0.9rem;
+      color: #63b3ed;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #0f3460;
+      padding-bottom: 6px;
+    }
+
+    .params-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 8px 16px;
+      font-size: 0.8rem;
+    }
+
+    .params-grid label { color: #94a3b8; display: block; margin-bottom: 2px; }
+    .params-grid input {
+      width: 100%;
+      background: #0f3460;
+      border: 1px solid #1e4a80;
+      border-radius: 4px;
+      color: #e0e0e0;
+      padding: 4px 8px;
+      font-size: 0.85rem;
+    }
+    .params-grid select {
+      width: 100%;
+      background: #0f3460;
+      border: 1px solid #1e4a80;
+      border-radius: 4px;
+      color: #e0e0e0;
+      padding: 4px 8px;
+      font-size: 0.85rem;
+    }
+
+    #run-btn {
+      display: block;
+      margin: 0 auto 18px auto;
+      background: linear-gradient(135deg, #0f3460, #1e4a80);
+      color: #a0c4ff;
+      border: 1px solid #63b3ed;
+      border-radius: 6px;
+      padding: 10px 40px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+    #run-btn:hover { background: linear-gradient(135deg, #1e4a80, #2a6ab5); }
+    #run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    #log-box {
+      background: #0d1117;
+      border: 1px solid #0f3460;
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 0.76rem;
+      font-family: 'Consolas', 'Courier New', monospace;
+      color: #7ee787;
+      white-space: pre-wrap;
+      min-height: 40px;
+      max-height: 180px;
+      overflow-y: auto;
+      margin-bottom: 18px;
+    }
+
+    .plot-wrap {
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 18px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>EMI Receiver Emulator</h1>
+<p class="subtitle">HTML/JS port — identical method to Python/NumPy/SciPy implementation</p>
+
+<!-- ── Parameters ──────────────────────────────────────── -->
+<div class="card">
+  <h2>Signal Parameters</h2>
+  <div class="params-grid">
+    <div>
+      <label>Fs (Hz)</label>
+      <input id="p-fs" type="number" value="50000000" />
+    </div>
+    <div>
+      <label>Duration (s)</label>
+      <input id="p-dur" type="number" value="0.001" step="0.0001" />
+    </div>
+    <div>
+      <label>Signal Freq (Hz)</label>
+      <input id="p-fsig" type="number" value="100000" />
+    </div>
+    <div>
+      <label>Clip Level (V)</label>
+      <input id="p-clip" type="number" value="0.01" step="0.001" />
+    </div>
+    <div>
+      <label>Noise σ (V)</label>
+      <input id="p-noise" type="number" value="0.001" step="0.0001" />
+    </div>
+    <div>
+      <label>Noise Seed</label>
+      <input id="p-seed" type="number" value="0" />
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>EMI Receiver Parameters</h2>
+  <div class="params-grid">
+    <div>
+      <label>RBW (Hz)</label>
+      <input id="p-rbw" type="number" value="9000" />
+    </div>
+    <div>
+      <label>Step (Hz)</label>
+      <input id="p-step" type="number" value="2500" />
+    </div>
+    <div>
+      <label>CISPR Band</label>
+      <select id="p-band">
+        <option value="A">A (9kHz–150kHz)</option>
+        <option value="B" selected>B (150kHz–30MHz)</option>
+        <option value="C">C/D (30MHz–1GHz)</option>
+      </select>
+    </div>
+    <div>
+      <label>Overlap %</label>
+      <input id="p-overlap" type="number" value="90" min="50" max="99" />
+    </div>
+  </div>
+</div>
+
+<button id="run-btn" onclick="runAll()">▶  Run EMI Analysis</button>
+
+<!-- ── Log ─────────────────────────────────────────────── -->
+<div id="log-box">Ready. Press Run.</div>
+
+<!-- ── Plots ───────────────────────────────────────────── -->
+<div class="plot-wrap card">
+  <h2>Time-Domain Signal (first 10 000 samples)</h2>
+  <div id="plot-signal" style="height:220px;"></div>
+</div>
+
+<div class="plot-wrap card">
+  <h2>EMI Spectrum — Peak / Quasi-Peak / Average  [dBµV]</h2>
+  <div id="plot-emi" style="height:480px;"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT  –  Exact port of emi_receiver.py
+     ══════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ------------------------------------------------------------------ *
+ * 0.  SEEDED PSEUDO-RANDOM  (Mulberry32 LCG  +  Box-Muller)          *
+ *     Gives exactly reproducible Gaussian noise sequences.           *
+ *     Note: seed 0 with this RNG != NumPy seed 0, but behaviour is   *
+ *     the same (white Gaussian noise at σ=0.001).                    *
+ * ------------------------------------------------------------------ */
+function makePRNG(seed) {
+  let s = (seed >>> 0) + 0x6D2B79F5;
+  return function () {
+    s  = Math.imul(s ^ (s >>> 15), s | 1);
+    s ^= s + Math.imul(s ^ (s >>> 7), s | 61);
+    return ((s ^ (s >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function gaussianNoise(n, sigma, seed) {
+  const rng = makePRNG(seed >>> 0);
+  const out = new Float64Array(n);
+  for (let i = 0; i < n; i += 2) {
+    let u, v, s;
+    do {
+      u = rng() * 2 - 1;
+      v = rng() * 2 - 1;
+      s = u * u + v * v;
+    } while (s >= 1 || s === 0);
+    const m = Math.sqrt(-2 * Math.log(s) / s);
+    out[i]     = sigma * u * m;
+    if (i + 1 < n) out[i + 1] = sigma * v * m;
+  }
+  return out;
+}
+
+/* ------------------------------------------------------------------ *
+ * 1.  SIGNAL GENERATION  (mirrors Python notebook cell)              *
+ * ------------------------------------------------------------------ */
+function generateSignal(fs, duration, f_sig, clip, noiseSigma, seed) {
+  const N = Math.round(fs * duration);
+  const signal = new Float64Array(N);
+  const t      = new Float64Array(N);
+  const dt     = 1.0 / fs;
+
+  for (let i = 0; i < N; i++) {
+    t[i] = i * dt;
+    let v = Math.sin(2 * Math.PI * f_sig * t[i]);
+    // Hard clipping
+    if (v >  clip) v =  clip;
+    if (v < -clip) v = -clip;
+    signal[i] = v;
+  }
+
+  const noise = gaussianNoise(N, noiseSigma, seed);
+  for (let i = 0; i < N; i++) signal[i] += noise[i];
+
+  return { t, signal, N };
+}
+
+/* ------------------------------------------------------------------ *
+ * 2.  RADIX-2 FFT  (in-place Cooley-Tukey)                           *
+ * ------------------------------------------------------------------ */
+function fft_inplace(re, im, inverse) {
+  const N = re.length;
+  // Bit-reversal
+  for (let i = 1, j = 0; i < N; i++) {
+    let bit = N >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      let t = re[i]; re[i] = re[j]; re[j] = t;
+          t = im[i]; im[i] = im[j]; im[j] = t;
+    }
+  }
+  // Butterfly
+  const sign = inverse ? 1.0 : -1.0;
+  for (let len = 2; len <= N; len <<= 1) {
+    const ang  = sign * 2 * Math.PI / len;
+    const wRe  = Math.cos(ang);
+    const wIm  = Math.sin(ang);
+    for (let i = 0; i < N; i += len) {
+      let uRe = 1, uIm = 0;
+      const half = len >> 1;
+      for (let k = 0; k < half; k++) {
+        const p = i + k, q = i + k + half;
+        const vRe = uRe * re[q] - uIm * im[q];
+        const vIm = uRe * im[q] + uIm * re[q];
+        re[q] = re[p] - vRe;  im[q] = im[p] - vIm;
+        re[p] += vRe;         im[p] += vIm;
+        const nuRe = uRe * wRe - uIm * wIm;
+        uIm = uRe * wIm + uIm * wRe;
+        uRe = nuRe;
+      }
+    }
+  }
+  if (inverse) {
+    for (let i = 0; i < N; i++) { re[i] /= N; im[i] /= N; }
+  }
+}
+
+function nextPow2(n) { let p = 1; while (p < n) p <<= 1; return p; }
+
+/* ------------------------------------------------------------------ *
+ * 3.  BLUESTEIN FFT  (Chirp-Z Transform) – handles arbitrary N       *
+ *     Allows exact replication of scipy.fft.fft(x, n=20000)          *
+ * ------------------------------------------------------------------ */
+function fft_bluestein(xr_in, xi_in, N) {
+  const M = nextPow2(2 * N - 1);
+
+  // Chirp table  w[n] = exp(+j·π·n²/N)
+  const wr = new Float64Array(N);
+  const wi = new Float64Array(N);
+  for (let n = 0; n < N; n++) {
+    const ang = Math.PI * n * n / N;
+    wr[n] = Math.cos(ang);
+    wi[n] = Math.sin(ang);
+  }
+
+  // a[n] = x[n] · exp(-j·π·n²/N)  =  x[n] · conj(w[n])
+  const ar = new Float64Array(M);
+  const ai = new Float64Array(M);
+  for (let n = 0; n < N; n++) {
+    ar[n] =  xr_in[n] * wr[n] + xi_in[n] * wi[n];
+    ai[n] =  xi_in[n] * wr[n] - xr_in[n] * wi[n];
+  }
+
+  // b[n]: same chirp, wrapped for circular convolution
+  const br = new Float64Array(M);
+  const bi = new Float64Array(M);
+  br[0] = wr[0]; bi[0] = wi[0];
+  for (let n = 1; n < N; n++) {
+    br[n]     = wr[n]; bi[n]     = wi[n];
+    br[M - n] = wr[n]; bi[M - n] = wi[n];
+  }
+
+  // A = FFT(a),  B = FFT(b)
+  fft_inplace(ar, ai, false);
+  fft_inplace(br, bi, false);
+
+  // C = A·B  (complex multiply)
+  for (let k = 0; k < M; k++) {
+    const re = ar[k] * br[k] - ai[k] * bi[k];
+    const im = ar[k] * bi[k] + ai[k] * br[k];
+    ar[k] = re; ai[k] = im;
+  }
+
+  // c = IFFT(C)
+  fft_inplace(ar, ai, true);
+
+  // y[k] = exp(-j·π·k²/N) · c[k]
+  const yr = new Float64Array(N);
+  const yi = new Float64Array(N);
+  for (let k = 0; k < N; k++) {
+    yr[k] = ar[k] * wr[k] + ai[k] * wi[k];
+    yi[k] = ai[k] * wr[k] - ar[k] * wi[k];
+  }
+  return [yr, yi];
+}
+
+// Unified FFT dispatcher
+function fft(xr, xi) {
+  const N = xr.length;
+  if (N === 0) return [new Float64Array(0), new Float64Array(0)];
+  if ((N & (N - 1)) === 0) {
+    const r = xr.slice(), i = xi.slice();
+    fft_inplace(r, i, false);
+    return [r, i];
+  }
+  return fft_bluestein(xr, xi, N);
+}
+
+/* ------------------------------------------------------------------ *
+ * 4.  GAUSSIAN WINDOW   (matches scipy.signal.windows.gaussian)      *
+ * ------------------------------------------------------------------ */
+function gaussianWindow(M, std) {
+  // scipy: centered at (M-1)/2, formula: exp(-0.5*((n-(M-1)/2)/std)^2)
+  const w   = new Float64Array(M);
+  const mid = (M - 1) / 2;
+  for (let n = 0; n < M; n++) {
+    const x = (n - mid) / std;
+    w[n] = Math.exp(-0.5 * x * x);
+  }
+  return w;
+}
+
+/* ------------------------------------------------------------------ *
+ * 5.  STFT  (mirrors scipy.signal.stft with boundary='zeros'         *
+ *            padded=True, one-sided, ×2 for energy)                  *
+ * ------------------------------------------------------------------ */
+function stft(signal, fs, window_arr, nperseg, noverlap, nfft) {
+  const step      = nperseg - noverlap;
+  const half_win  = Math.floor(nperseg / 2);
+  const n_input   = signal.length;
+
+  // ── boundary='zeros': pad half-window at each end ──────────────
+  const prepad_len = n_input + 2 * half_win;
+  const padded_sig = new Float64Array(prepad_len);
+  for (let i = 0; i < n_input; i++) padded_sig[i + half_win] = signal[i];
+
+  // ── padded=True: ensure last frame fits exactly ─────────────────
+  const n_frames = Math.ceil((prepad_len - nperseg) / step) + 1;
+  const needed   = (n_frames - 1) * step + nperseg;
+  const sig      = new Float64Array(needed);
+  sig.set(padded_sig);                 // extra tail stays zero
+
+  // ── Frequency axis ──────────────────────────────────────────────
+  const n_freq = Math.floor(nfft / 2) + 1;
+  const freqs  = new Float64Array(n_freq);
+  for (let f = 0; f < n_freq; f++) freqs[f] = f * fs / nfft;
+
+  // ── Allocate spectrogram [n_frames][n_freq] ─────────────────────
+  //   Use typed arrays per frame for speed
+  const spec = new Array(n_frames);
+  for (let t = 0; t < n_frames; t++) spec[t] = new Float64Array(n_freq);
+
+  // Reusable FFT buffers
+  const xr = new Float64Array(nfft);
+  const xi = new Float64Array(nfft);
+
+  for (let t = 0; t < n_frames; t++) {
+    const start = t * step;
+    xr.fill(0); xi.fill(0);
+
+    // Apply window (first nperseg samples; rest stays zero for zero-padding)
+    for (let k = 0; k < nperseg; k++) {
+      xr[k] = sig[start + k] * window_arr[k];
+    }
+
+    // FFT(nfft)
+    const [yr, yi] = fft(xr, xi);
+
+    // One-sided magnitudes × 2  (scipy convention)
+    for (let f = 0; f < n_freq; f++) {
+      spec[t][f] = Math.sqrt(yr[f] * yr[f] + yi[f] * yi[f]) * 2.0;
+    }
+  }
+
+  return { freqs, spec, n_frames, n_freq };
+}
+
+/* ------------------------------------------------------------------ *
+ * 6.  QUASI-PEAK DETECTOR  (CISPR RC charge/discharge)               *
+ *     Returns MAX of the output array – matches Python np.max(output) *
+ * ------------------------------------------------------------------ */
+function quasiPeakFilter(timeSeries, n, dt, tau_c, tau_d) {
+  const alpha_c = 1.0 - Math.exp(-dt / tau_c);
+  const alpha_d = 1.0 - Math.exp(-dt / tau_d);
+  let cur = 0.0, maxOut = 0.0;
+  for (let i = 0; i < n; i++) {
+    const v = timeSeries[i];
+    if (v > cur) cur += alpha_c * (v - cur);
+    else         cur -= alpha_d * cur;
+    if (cur > maxOut) maxOut = cur;
+  }
+  return maxOut;
+}
+
+/* ------------------------------------------------------------------ *
+ * 7.  MAIN EMI RECEIVER   (exact port of receiver() in .py)          *
+ * ------------------------------------------------------------------ */
+function receiver(signal, fs, rbw, step, band, overlapPct) {
+  // ── A. CISPR Time Constants ─────────────────────────────────────
+  let tau_c, tau_d;
+  if      (band === 'A') { tau_c = 45e-3;  tau_d = 500e-3; }
+  else if (band === 'B') { tau_c = 1e-3;   tau_d = 160e-3; }
+  else                   { tau_c = 1e-3;   tau_d = 550e-3; }
+
+  // ── B. Gaussian Window Design ───────────────────────────────────
+  //   6 dB BW = RBW  →  σ_f = RBW / (2√(2·ln2))
+  const sigma_f   = rbw / (2 * Math.sqrt(2 * Math.log(2)));
+  const sigma_t   = 1.0 / (2 * Math.PI * sigma_f);
+  const win_len_s = 6 * sigma_t;
+  let nperseg = Math.floor(win_len_s * fs);
+  if (nperseg % 2 === 0) nperseg += 1;       // force odd (mirrors Python)
+
+  // ── C. FFT Size (zero-padding for exact step) ───────────────────
+  const target_nfft = Math.round(fs / step);
+  const nfft = (target_nfft < nperseg) ? nperseg : target_nfft;
+  const actual_step = fs / nfft;
+
+  // ── D. Gaussian Window ──────────────────────────────────────────
+  const sigma_samp = sigma_t * fs;
+  let window = gaussianWindow(nperseg, sigma_samp);
+
+  // Normalize by sum (energy normalisation – matches Python)
+  let wsum = 0; for (let i = 0; i < nperseg; i++) wsum += window[i];
+  for (let i = 0; i < nperseg; i++) window[i] /= wsum;
+
+  // ── E. Overlap ──────────────────────────────────────────────────
+  const overlap_ratio = overlapPct / 100;
+  const noverlap      = Math.floor(nperseg * overlap_ratio);
+  const step_size     = nperseg - noverlap;
+  const fs_det        = fs / step_size;
+  const dt_det        = 1.0 / fs_det;
+
+  // ── Debug Info ──────────────────────────────────────────────────
+  log(`--------------------------------------------------`);
+  log(`EMI Receiver Configuration:`);
+  log(`  RBW           : ${rbw} Hz`);
+  log(`  Step Size     : ${actual_step.toFixed(2)} Hz  (Target: ${step} Hz)`);
+  log(`  Window Size   : ${nperseg} samples`);
+  log(`  FFT Size      : ${nfft} samples  (Zero-Pad: ${nfft > nperseg})`);
+  log(`  Detector dT   : ${(dt_det * 1e3).toFixed(3)} ms`);
+  log(`  Frames        : computing...`);
+  log(`--------------------------------------------------`);
+
+  if (dt_det > tau_c) log('WARNING: Sample rate / Overlap too low for accurate QP!');
+
+  // ── F. STFT ─────────────────────────────────────────────────────
+  const { freqs, spec, n_frames, n_freq } = stft(
+    signal, fs, window, nperseg, noverlap, nfft
+  );
+  log(`  Frames computed: ${n_frames}`);
+
+  // ── G. Detectors ────────────────────────────────────────────────
+  const peak_v = new Float64Array(n_freq);
+  const avg_v  = new Float64Array(n_freq);
+  const qp_v   = new Float64Array(n_freq);
+
+  // Reusable time-trace buffer
+  const timeBuf = new Float64Array(n_frames);
+
+  for (let f = 0; f < n_freq; f++) {
+    let maxV = 0, sumV = 0;
+    for (let t = 0; t < n_frames; t++) {
+      const v = spec[t][f];
+      timeBuf[t] = v;
+      if (v > maxV) maxV = v;
+      sumV += v;
+    }
+    peak_v[f] = maxV;
+    avg_v[f]  = sumV / n_frames;
+    qp_v[f]   = quasiPeakFilter(timeBuf, n_frames, dt_det, tau_c, tau_d);
+  }
+
+  // ── H. Convert to dBµV ──────────────────────────────────────────
+  function to_dbuv(arr) {
+    const out = new Float64Array(arr.length);
+    for (let i = 0; i < arr.length; i++) {
+      out[i] = 20 * Math.log10(Math.max(arr[i], 1e-12) * 1e6);
+    }
+    return out;
+  }
+
+  return {
+    freqs,
+    peak:  to_dbuv(peak_v),
+    avg:   to_dbuv(avg_v),
+    qp:    to_dbuv(qp_v)
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * 8.  UTILITY: LOGGER                                                 *
+ * ------------------------------------------------------------------ */
+const logEl = document.getElementById('log-box');
+function log(msg) {
+  logEl.textContent += msg + '\n';
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function clearLog() { logEl.textContent = ''; }
+
+/* ------------------------------------------------------------------ *
+ * 9.  PLOTLY HELPERS                                                  *
+ * ------------------------------------------------------------------ */
+const PLOTLY_LAYOUT_BASE = {
+  paper_bgcolor: '#16213e',
+  plot_bgcolor:  '#0d1117',
+  font: { color: '#c0cfe0', size: 11 },
+  margin: { l: 55, r: 20, t: 10, b: 45 },
+  xaxis: { gridcolor: '#1e3a5f', zerolinecolor: '#1e3a5f', color: '#94a3b8' },
+  yaxis: { gridcolor: '#1e3a5f', zerolinecolor: '#1e3a5f', color: '#94a3b8' },
+  legend: { bgcolor: '#16213e', bordercolor: '#0f3460', borderwidth: 1, font: { size: 10 } }
+};
+
+function plotSignal(t, signal, Nplot) {
+  const tSlice = Array.from(t.subarray(0, Nplot)).map(v => v * 1e6);  // µs
+  const sSlice = Array.from(signal.subarray(0, Nplot));
+
+  Plotly.newPlot('plot-signal', [{
+    x: tSlice, y: sSlice,
+    mode: 'lines', line: { color: '#63b3ed', width: 0.8 },
+    name: 'Signal'
+  }], {
+    ...PLOTLY_LAYOUT_BASE,
+    xaxis: { ...PLOTLY_LAYOUT_BASE.xaxis, title: { text: 'Time (µs)', font: { size: 11 } } },
+    yaxis: { ...PLOTLY_LAYOUT_BASE.yaxis, title: { text: 'Amplitude (V)', font: { size: 11 } } }
+  }, { responsive: true });
+}
+
+function plotEMI(freqs_hz, peak, qp, avg, band) {
+  // Convert to MHz arrays
+  const f_MHz = Array.from(freqs_hz).map(v => v * 1e-6);
+
+  // ── CISPR EN 55032 Class B limits ─────────────────────────────
+  const fB = [0.15, 0.5, 5.0, 5.0, 30.0];
+  const qp_B  = [66, 56, 56, 60, 60];
+  const avg_B = [56, 46, 46, 50, 50];
+
+  // ── CISPR EN 55032 Class A limits ─────────────────────────────
+  const fA = [0.15, 0.5, 0.5, 30.0];
+  const qp_A  = [79, 79, 73, 73];
+  const avg_A = [66, 66, 60, 60];
+
+  const traces = [
+    {
+      x: f_MHz, y: Array.from(peak),
+      mode: 'lines', name: 'Peak',
+      line: { color: '#00F047', width: 0.8 }
+    },
+    {
+      x: f_MHz, y: Array.from(qp),
+      mode: 'lines', name: 'Q-Peak',
+      line: { color: '#C62828', width: 0.8 }
+    },
+    {
+      x: f_MHz, y: Array.from(avg),
+      mode: 'lines', name: 'AVG',
+      line: { color: '#2D6CE8', width: 0.8 }
+    },
+    // Class B
+    {
+      x: fB, y: qp_B,
+      mode: 'lines', name: 'Q-Peak EN 55032 Class B',
+      line: { color: '#ff6b6b', width: 1.5, dash: 'dash' }
+    },
+    {
+      x: fB, y: avg_B,
+      mode: 'lines', name: 'AVG EN 55032 Class B',
+      line: { color: '#74b9ff', width: 1.5, dash: 'dash' }
+    },
+    // Class A
+    {
+      x: fA, y: qp_A,
+      mode: 'lines', name: 'Q-Peak EN 55032 Class A',
+      line: { color: '#fd79a8', width: 1.5, dash: 'dot' }
+    },
+    {
+      x: fA, y: avg_A,
+      mode: 'lines', name: 'AVG EN 55032 Class A',
+      line: { color: '#55efc4', width: 1.5, dash: 'dot' }
+    }
+  ];
+
+  Plotly.newPlot('plot-emi', traces, {
+    ...PLOTLY_LAYOUT_BASE,
+    xaxis: {
+      ...PLOTLY_LAYOUT_BASE.xaxis,
+      type:  'log',
+      range: [Math.log10(0.15), Math.log10(30)],
+      title: { text: 'Frequency (MHz)', font: { size: 11 } },
+      tickvals: [0.15, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10, 20, 30],
+      ticktext: ['0.15','0.2','0.3','0.5','1','2','3','5','10','20','30'],
+      minor: { showgrid: true, gridcolor: '#111e30' }
+    },
+    yaxis: {
+      ...PLOTLY_LAYOUT_BASE.yaxis,
+      range: [20, 85],
+      dtick: 5,
+      title: { text: 'dBµV', font: { size: 11 } }
+    },
+    legend: { ...PLOTLY_LAYOUT_BASE.legend, ncols: 2 },
+    margin: { l: 55, r: 20, t: 15, b: 50 }
+  }, { responsive: true });
+}
+
+/* ------------------------------------------------------------------ *
+ * 10.  MAIN ENTRY POINT                                               *
+ * ------------------------------------------------------------------ */
+async function runAll() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳  Computing…';
+  clearLog();
+
+  // Yield to browser so UI updates before heavy computation
+  await new Promise(r => setTimeout(r, 30));
+
+  try {
+    // Read parameters
+    const fs       = +document.getElementById('p-fs').value;
+    const dur      = +document.getElementById('p-dur').value;
+    const f_sig    = +document.getElementById('p-fsig').value;
+    const clip     = +document.getElementById('p-clip').value;
+    const noiseSig = +document.getElementById('p-noise').value;
+    const seed     = +document.getElementById('p-seed').value;
+    const rbw      = +document.getElementById('p-rbw').value;
+    const step     = +document.getElementById('p-step').value;
+    const band     =  document.getElementById('p-band').value;
+    const overlapP = +document.getElementById('p-overlap').value;
+
+    log(`Generating signal…  fs=${fs/1e6} MHz, dur=${dur*1e3} ms, f_sig=${f_sig/1e3} kHz`);
+
+    const t0_gen = performance.now();
+    const { t, signal, N } = generateSignal(fs, dur, f_sig, clip, noiseSig, seed);
+    log(`Signal: ${N} samples  [${(performance.now()-t0_gen).toFixed(1)} ms]`);
+
+    // Plot first 10 000 samples  (mirrors notebook Nplot=10000)
+    plotSignal(t, signal, Math.min(10000, N));
+
+    log(`\nRunning EMI Receiver…`);
+    const t0_emi = performance.now();
+
+    // Run in async chunk so browser doesn't freeze
+    await new Promise(r => setTimeout(r, 10));
+    const { freqs, peak, qp, avg } = receiver(signal, fs, rbw, step, band, overlapP);
+    log(`\nEMI Receiver done  [${((performance.now()-t0_emi)/1e3).toFixed(2)} s]`);
+
+    plotEMI(freqs, peak, qp, avg, band);
+    log(`\n✔  All done!`);
+
+  } catch (err) {
+    log(`\n❌ Error: ${err.message}\n${err.stack}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '▶  Run EMI Analysis';
+  }
+}
+</script>
+
+</body>
+</html>

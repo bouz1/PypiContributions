@@ -173,3 +173,130 @@ def receiver(signal, fs, rbw=9000, step=2500, band='B'):
         return 20 * np.log10(np.maximum(v_array, 1e-12) * 1e6)
 
     return f_axis, to_dbuv(peak_v), to_dbuv(avg_v), to_dbuv(qp_v)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def gaussian_stft(signal , rbw= 9e3, # 9kHz 
+                  fs = 100e6,
+                  step =2.5e3, # 2.5khz 
+                  kind= "db"
+                 ):
+
+
+
+    """
+    Compute a Gaussian-window Short-Time Fourier Transform (STFT)
+    with a physically-defined 6 dB Resolution Bandwidth (RBW).
+
+    This function generates a Gaussian window whose 6 dB frequency
+    bandwidth equals the specified RBW, making the transform behave
+    similarly to a spectrum analyzer with a defined RBW filter.
+
+    The window length is derived from the Gaussian time–frequency
+    relationship, and a high overlap (90%) is used to accurately
+    capture transient peaks and improve time resolution.
+
+    Parameters
+    ----------
+    signal : array_like
+        Input time-domain signal.
+    rbw : float, optional
+        Desired 6 dB resolution bandwidth in Hz (default: 9e3).
+    fs : float, optional
+        Sampling frequency in Hz (default: 100e6).
+    step : float, optional
+        Frequency step parameter (currently informational / display-related).
+    kind : str, optional
+        Output type:
+            - "complex" : return complex STFT values
+            - "lin"      : return linear magnitude
+            - "db"      : return magnitude in dB (default)
+
+    Returns
+    -------
+    freq : ndarray
+        Frequency axis (Hz).
+    time : ndarray
+        Time axis (seconds).
+    Z / mag / db : ndarray
+        STFT output according to `kind`.
+
+    Notes
+    -----
+    - Gaussian window is energy-normalized (sum = 1).
+    - 90% overlap is used for improved transient detection.
+    - Frequency resolution is governed by the RBW definition.
+    """
+
+
+    # --- B. Design the "RBW" Window ---
+    # We need a Gaussian window where the 6dB bandwidth equals RBW.
+    sigma_f = rbw / (2 * np.sqrt(2 * np.log(2)))
+    sigma_t = 1.0 / (2 * np.pi * sigma_f)
+    
+    # Window length (Physical Filter Width)
+    win_len_sec = 6 * sigma_t 
+    nperseg = int(win_len_sec * fs)
+    if nperseg % 2 == 0: nperseg += 1
+    
+    # --- C. Configure FFT Step Size ---
+    # Formula: Step = Fs / Nfft
+    
+    
+    
+    
+    # Generate Gaussian Window
+    sigma_samples = sigma_t * fs
+    window = scipy.signal.windows.gaussian(nperseg, std=sigma_samples)
+    
+    # Normalize Window Energy (Sum=1 ensures correct amplitude after FFT)
+    window = window / np.sum(window) 
+    # --- E. Perform STFT ---
+    # padded=True allows signal to be handled at boundaries
+
+
+    # --- D. Overlap Configuration ---
+    # 90% Overlap is standard for FFT-Scan to capture transient peaks
+    overlap_ratio = 0.90 
+    noverlap = int(nperseg * overlap_ratio)
+    step_size = nperseg - noverlap
+    # step_size = 2499
+    # nperseg, len(window) =(24985, 24985)
+    nfft = nperseg
+    
+    # Detector Timing
+    fs_detector = fs / step_size
+    dt_detector = 1.0 / fs_detector
+
+    #f_axis2, t_axis2, Zxx2 
+    freq, time, Z= scipy.signal.stft(
+        signal, fs, 
+        window=window, 
+        nperseg=nperseg,    # Controls RBW Physics
+        noverlap=noverlap, 
+        nfft=nfft,          # Controls Frequency Step (Display)
+        boundary='zeros',
+        padded=True
+    )
+    mag = np.abs(Z)
+    db = 20*np.log10(mag)
+    match kind :
+        case "complex":
+            return freq, time, Z
+        case "lin": 
+            return freq, time, mag
+        case "db":
+            return freq, time, db
+
+
